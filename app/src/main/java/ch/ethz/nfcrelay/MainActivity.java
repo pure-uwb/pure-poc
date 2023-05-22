@@ -1,5 +1,7 @@
 package ch.ethz.nfcrelay;
 
+import static ch.ethz.nfcrelay.mock.Constants.isMock;
+
 import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -20,6 +22,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -45,6 +48,9 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import ch.ethz.nfcrelay.mock.CardBackend;
+import ch.ethz.nfcrelay.mock.EmvTrace;
+import ch.ethz.nfcrelay.mock.ReaderBackend;
 import ch.ethz.nfcrelay.nfc.Util;
 import ch.ethz.nfcrelay.nfc.card.ResponseResolver;
 import ch.ethz.nfcrelay.nfc.card.hce.EMVraceApduService;
@@ -52,11 +58,8 @@ import ch.ethz.nfcrelay.nfc.pos.RelayPosEmulator;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String[][] NFC_TECH_FILTER = new String[][]{
-            new String[]{IsoDep.class.getName(), NfcA.class.getName(), NfcB.class.getName()}};
-    private static final IntentFilter[] INTENT_FILTERS = new IntentFilter[]{
-            new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED),
-            new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)};
+    private static final String[][] NFC_TECH_FILTER = new String[][]{new String[]{IsoDep.class.getName(), NfcA.class.getName(), NfcB.class.getName()}};
+    private static final IntentFilter[] INTENT_FILTERS = new IntentFilter[]{new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED), new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)};
     private static final int PORT = 8080;
 
     private LinearLayout layoutStatus;
@@ -92,26 +95,19 @@ public class MainActivity extends AppCompatActivity {
         fabSave.setOnClickListener(view -> saveToStorage());
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        nfcIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, getClass()).addFlags(
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP),
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : 0);
+        nfcIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : 0);
 
         applySettings();
-        launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
-                result -> applySettings());
+        launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> applySettings());
     }
 
     private String getLocalIpAddress() {
-        WifiManager wifiManager = (WifiManager) getApplicationContext().
-                getSystemService(WIFI_SERVICE);
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         if (wifiManager != null) {
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             int ipInt = wifiInfo.getIpAddress();
             try {
-                return InetAddress.getByAddress(
-                                ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipInt).array())
-                        .getHostAddress();
+                return InetAddress.getByAddress(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipInt).array()).getHostAddress();
             } catch (UnknownHostException e) {
                 showErrorOrWarning(e, true);
             }
@@ -135,8 +131,7 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            if (isPOS)
-                logBackup = tvLog.getText();
+            if (isPOS) logBackup = tvLog.getText();
             launcher.launch(new Intent(this, SettingsActivity.class));
             return true;
         }
@@ -189,8 +184,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (tagComm != null && tagComm.isConnected())
                 updateStatus(getString(R.string.card_connected), true);
-            else
-                updateStatus(getString(R.string.waiting_for_card), false);
+            else updateStatus(getString(R.string.waiting_for_card), false);
         }
     }
 
@@ -198,8 +192,7 @@ public class MainActivity extends AppCompatActivity {
     public void onPause() {
         //Disable reader mode when user leaves the activity
         super.onPause();
-        if (isPOS && nfcAdapter != null)
-            nfcAdapter.disableForegroundDispatch(this);
+        if (isPOS && nfcAdapter != null) nfcAdapter.disableForegroundDispatch(this);
     }
 
     @Override
@@ -208,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
 
         if (isPOS) {
+            Log.i("MainActivity", "NEW INTENT");
             tagComm = IsoDep.get(intent.getParcelableExtra(NfcAdapter.EXTRA_TAG));
             updateStatus(getString(R.string.card_connected), true);
 
@@ -216,28 +210,33 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 showErrorOrWarning(e, false);
             }
-
             new RelayPosEmulator(this, tagComm).start();
+            if (isMock) {
+                EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercad_to_selecta_2chf));
+                new ReaderBackend(ip, PORT, emvTrace).start();
+            }
         }
     }
 
     public void tryToStartCardEmulator() {
         try {
+            if (isMock) {
+                EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercad_to_selecta_2chf));
+                Thread cardBackend = CardBackend.getInstance( PORT, emvTrace);
+                cardBackend.start();
+                Log.i("MainActivity", "Started mock card backend");
+            }
             CardEmulation cardEmulation = CardEmulation.getInstance(NfcAdapter.getDefaultAdapter(this));
             ComponentName cmpName = new ComponentName(this, EMVraceApduService.class);
             //check that our APDU service is active
             if (!cardEmulation.isDefaultServiceForCategory(cmpName, CardEmulation.CATEGORY_PAYMENT)) {
-                Snackbar.make(findViewById(R.id.layout_main), R.string.service_not_active,
-                                Snackbar.LENGTH_SHORT)
-                        .setAction(R.string.enable,
-                                view -> startActivity(new Intent(Settings.ACTION_NFC_PAYMENT_SETTINGS)))
+                Snackbar.make(findViewById(R.id.layout_main), R.string.service_not_active, Snackbar.LENGTH_SHORT).setAction(R.string.enable, view -> startActivity(new Intent(Settings.ACTION_NFC_PAYMENT_SETTINGS)))
 
                         .show();
             } else {
                 //test connection with the remote POS emulator
                 //if successful, such thread will launch the card activity
-                new ResponseResolver(null, ip, PORT,
-                        Util.PPSE_APDU_SELECT, true, this).start();
+                new ResponseResolver(null, ip, PORT, Util.PPSE_APDU_SELECT, true, this).start();
             }
             //new ResponseResolver(null, ip, PORT,
             //        Util.PPSE_APDU_SELECT, true, this).start();
@@ -264,8 +263,7 @@ public class MainActivity extends AppCompatActivity {
         if ("storage".equals(saveMode) || "clipboard_n_storage".equals(saveMode)) {
             new Thread(() -> {
                 try {
-                    File file = new File(Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_DOWNLOADS), filename);
+                    File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), filename);
 
                     FileOutputStream out = new FileOutputStream(file);
                     out.write(getLogString().getBytes());
@@ -282,8 +280,7 @@ public class MainActivity extends AppCompatActivity {
 
         if ("clipboard".equals(saveMode) || "clipboard_n_storage".equals(saveMode)) {
             try {
-                ClipboardManager cb =
-                        (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipboardManager cb = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 if (cb != null) {
                     cb.setPrimaryClip(ClipData.newPlainText(filename, getLogString()));
                     showSuccess(getString(R.string.copied_to_clip), true);
@@ -301,20 +298,17 @@ public class MainActivity extends AppCompatActivity {
 
     public void updateStatus(final String msg, final boolean cardConnected) {
         runOnUiThread(() -> {
-            layoutStatus.setBackgroundResource(cardConnected ?
-                    android.R.color.holo_green_dark : android.R.color.holo_red_dark);
+            layoutStatus.setBackgroundResource(cardConnected ? android.R.color.holo_green_dark : android.R.color.holo_red_dark);
             tvStatus.setText(msg);
         });
     }
 
     public void showSuccess(final String msg, final boolean lengthShort) {
-        runOnUiThread(() -> Toast.makeText(this, msg,
-                lengthShort ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show());
+        runOnUiThread(() -> Toast.makeText(this, msg, lengthShort ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show());
     }
 
     public void showErrorOrWarning(final String msg, final boolean lengthShort) {
-        runOnUiThread(() -> Snackbar.make(findViewById(R.id.layout_main), msg,
-                lengthShort ? Snackbar.LENGTH_SHORT : Snackbar.LENGTH_LONG).show());
+        runOnUiThread(() -> Snackbar.make(findViewById(R.id.layout_main), msg, lengthShort ? Snackbar.LENGTH_SHORT : Snackbar.LENGTH_LONG).show());
     }
 
     public void showErrorOrWarning(@NonNull final Exception e, final boolean lengthShort) {

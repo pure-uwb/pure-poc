@@ -1,5 +1,9 @@
 package ch.ethz.nfcrelay.nfc.card;
 
+import static ch.ethz.nfcrelay.nfc.Util.bytesToHex;
+
+import android.util.Log;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -32,6 +36,7 @@ public class ResponseResolver extends Thread {
     @Override
     public void run() {
         try {
+            Log.i("ResponderResolver", "CMD:" + bytesToHex(cmd));
             //create socket
             Socket socket = new Socket(ip, port);
 
@@ -54,8 +59,10 @@ public class ResponseResolver extends Thread {
                 if (isPPSECmd && responseOK) //launch Wallet Activity
                     activity.startCardEmulator();
 
-                else if (!isPPSECmd && hostApduService != null)
+                else if (!isPPSECmd && hostApduService != null){
                     hostApduService.sendResponseApdu(resp);
+                    Log.i("ResponseResolver", "RESP: " + bytesToHex(resp));
+                }
             }
 
             //close resources

@@ -17,6 +17,7 @@ public class CardActivity extends AppCompatActivity {
     private ProgressBar pbTransacting;
     private TextView tvMsg;
     private boolean transacting, receivedGPO;
+    private boolean isMock = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

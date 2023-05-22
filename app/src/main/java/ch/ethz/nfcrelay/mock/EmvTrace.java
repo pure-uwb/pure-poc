@@ -1,0 +1,66 @@
+package ch.ethz.nfcrelay.mock;
+
+import android.util.Log;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import ch.ethz.nfcrelay.nfc.Util;
+
+public class EmvTrace {
+
+    private final Iterator<byte[]> commandsIterator;
+    private final Iterator<byte[]> responsesIterator;
+
+    public EmvTrace(InputStream inputStream) {
+        List<byte[]> commands = new ArrayList<>();
+        List<byte[]> responses = new ArrayList<>();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        try {
+            String line;
+            while ((line = reader.readLine()) != null) {
+//            for (String line : reader.lines().iterator()){
+                String[] tokens = line.split("]");
+                if (tokens.length != 2){
+                    break;
+                }
+                String TAG = this.getClass().toString();
+                Log.i(TAG, "|" + tokens[0] + "|" + tokens[1]);
+
+                if (tokens[0].contains("C-APDU")) {
+                    commands.add(Util.hexToBytes(tokens[1].strip()));
+                } else {
+                    responses.add(Util.hexToBytes(tokens[1].strip()));
+                }
+            }
+            reader.close();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        commandsIterator = commands.iterator();
+        responsesIterator = responses.iterator();
+        commandsIterator.next();
+    }
+
+    public boolean commandsHasNext() {
+        return commandsIterator.hasNext();
+    }
+
+    public boolean responsesHasNext() {
+        return responsesIterator.hasNext();
+    }
+
+    public byte[] getCommand() {
+        return commandsIterator.next();
+    }
+
+    public byte[] getResponse() {
+        return responsesIterator.next();
+    }
+}
