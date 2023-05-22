@@ -1,0 +1,26 @@
+<host-apdu-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:apduServiceBanner="@mipmap/ic_launcher_round"
+    android:description="@string/servicedesc"
+    android:requireDeviceUnlock="false">
+
+    <aid-group
+        android:category="payment"
+        android:description="@string/aiddescription">
+        <aid-filter android:name="325041592E5359532E4444463031" />
+        <aid-filter android:name="A0000000031010" />
+        <aid-filter android:name="A000000003101001" />
+        <aid-filter android:name="A000000003101002" />
+        <aid-filter android:name="A0000000032010" />
+        <aid-filter android:name="A0000000032020" />
+        <aid-filter android:name="A0000000033010" />
+        <aid-filter android:name="A00000000401" />
+        <aid-filter android:name="A0000000041010" />
+        <aid-filter android:name="A0000000043060" />
+        <aid-filter android:name="A000000025" />
+        <aid-filter android:name="A0000000250000" />
+        <aid-filter android:name="A000000025010402" />
+
+        <!-- add further AIDs, from https://www.eftlab.com/knowledge-base/211-emv-aid-rid-pix/ -->
+    </aid-group>
+
+</host-apdu-service>
