@@ -10,6 +10,7 @@ import ch.ethz.nfcrelay.nfc.card.ResponseResolver;
 public class EMVraceApduService extends HostApduService {
 
     public static CardActivity cardActivity;
+    public static CommandDispatcher dispatcher;
     public static String ip;
     public static int port;
 
@@ -17,10 +18,7 @@ public class EMVraceApduService extends HostApduService {
     public byte[] processCommandApdu(byte[] commandApdu, Bundle extras) {
         if (cardActivity != null)
             cardActivity.onApduCommandReceived(commandApdu);
-
-        ResponseResolver responseResolver = new ResponseResolver(this, ip, port,
-                commandApdu, false, null);
-        responseResolver.start();
+        dispatcher.dispatch(this, ip, port, commandApdu, false, null);
         return Util.EMPTY_APDU_RESPONSE;//tell the HCE to wait until the response has been resolved
     }
 
