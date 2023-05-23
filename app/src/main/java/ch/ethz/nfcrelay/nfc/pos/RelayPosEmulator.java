@@ -3,6 +3,8 @@ package ch.ethz.nfcrelay.nfc.pos;
 import android.nfc.tech.IsoDep;
 import android.util.Log;
 
+import com.example.emvextension.protocol.ProtocolModifier;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -19,10 +21,25 @@ public class RelayPosEmulator extends Thread {
 
     private final MainActivity activity;
     private final IsoDep tagComm;
+    private final ProtocolModifier modifier;
 
     public RelayPosEmulator(MainActivity activity, IsoDep tagComm) {
         this.activity = activity;
         this.tagComm = tagComm;
+        this.modifier = null;
+        try {
+            if (tagComm != null && !tagComm.isConnected())
+                tagComm.connect();
+
+        } catch (IOException e) {
+            activity.showErrorOrWarning(e, true);
+        }
+    }
+
+    public RelayPosEmulator(MainActivity activity, IsoDep tagComm, ProtocolModifier modifier) {
+        this.activity = activity;
+        this.tagComm = tagComm;
+        this.modifier = modifier;
         try {
             if (tagComm != null && !tagComm.isConnected())
                 tagComm.connect();
@@ -67,8 +84,8 @@ public class RelayPosEmulator extends Thread {
 
                 //send APDU command to the card and receive APDU response
                 //byte[] resp = Util.hexToBytes("6F3A840E325041592E5359532E 444463031A528BF0C2561234F07A0000000041010500A4D6173746572436172648701019F0A0800010502000000009000");//tagComm.transceive(cmd);
-                byte [] gen_ac_command = new byte[]{(byte)0x80, (byte)0xAE};
                 /*
+                byte [] gen_ac_command = new byte[]{(byte)0x80, (byte)0xAE};
                 Tested 4 phones relay with 200 ms sleep and works
                     if(Arrays.equals(gen_ac_command, Arrays.copyOfRange(cmd, 0, 2))){
                         Log.i("RelayPosEmulator", "GEN_AC_COMMAND, sleep...");
@@ -80,6 +97,14 @@ public class RelayPosEmulator extends Thread {
 
                 //refresh GUI with response
                 activity.appendToLog("[R-APDU] " + Util.bytesToHex(resp));
+
+                // HERE ON gen_ac_command do:
+                // 1. extract AC
+                // 2. execute extension protocol
+                // 3. Send AC to the socket only if extension protocol succeeded
+                if (this.modifier != null){
+                    resp = modifier.parse(cmd, resp);
+                }
 
                 //write APDU response into the mSocket
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());

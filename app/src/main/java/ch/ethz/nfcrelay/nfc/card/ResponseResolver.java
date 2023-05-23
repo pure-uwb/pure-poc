@@ -4,6 +4,8 @@ import static ch.ethz.nfcrelay.nfc.Util.bytesToHex;
 
 import android.util.Log;
 
+import com.example.emvextension.protocol.ProtocolModifier;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -21,16 +23,17 @@ public class ResponseResolver extends Thread {
     private final int port;
     private final byte[] cmd;
     private final boolean isPPSECmd;
+    private final ProtocolModifier modifier;
 
-    public
-    ResponseResolver(EMVraceApduService hostApduService, String ip, int port,
-                            byte[] cmd, boolean isPPSECmd, MainActivity activity) {
+    public ResponseResolver(EMVraceApduService hostApduService, String ip, int port,
+                            byte[] cmd, boolean isPPSECmd, MainActivity activity, ProtocolModifier modifier) {
         this.hostApduService = hostApduService;
         this.ip = ip;
         this.port = port;
         this.cmd = cmd;
         this.isPPSECmd = isPPSECmd;
         this.activity = activity;
+        this.modifier = modifier;
     }
 
     @Override
@@ -60,6 +63,11 @@ public class ResponseResolver extends Thread {
                     activity.startCardEmulator();
 
                 else if (!isPPSECmd && hostApduService != null){
+                    // HERE ON gen_ac_command do:
+                    // 1. extract AC
+                    // 2. execute extension protocol
+                    // 3. Send AC to the socket only if extension protocol succeeded
+                    resp = modifier.parse(cmd, resp);
                     hostApduService.sendResponseApdu(resp);
                     Log.i("ResponseResolver", "RESP: " + bytesToHex(resp));
                 }

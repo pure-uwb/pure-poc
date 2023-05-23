@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 //test connection with the remote POS emulator
                 //if successful, such thread will launch the card activity
-                new ResponseResolver(null, ip, PORT, Util.PPSE_APDU_SELECT, true, this).start();
+                new ResponseResolver(null, ip, PORT, Util.PPSE_APDU_SELECT, true, this, null).start();
             }
             //new ResponseResolver(null, ip, PORT,
             //        Util.PPSE_APDU_SELECT, true, this).start();
