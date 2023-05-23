@@ -110,6 +110,20 @@ public class EmvParser {
         card = new EmvCard();
     }
 
+
+    /**
+     * Constructor
+     *
+     * @param pProvider
+     *            provider to launch command
+     * @param pContactLess
+     *            boolean to indicate if the EMV card is contact less or not
+     */
+    public EmvParser(final boolean pContactLess) {
+        provider = null;
+        contactLess = pContactLess;
+        card = new EmvCard();
+    }
     /**
      * Method used to read public data from EMV card
      *
@@ -572,7 +586,7 @@ public class EmvParser {
 	 * @param pData
 	 *            card data
      */
-    protected void extractCardHolderName(final byte[] pData) {
+    public void extractCardHolderName(final byte[] pData) {
         // Extract Card Holder name (if exist)
         byte[] cardHolderByte = TlvUtil.getValue(pData, EmvTags.CARDHOLDER_NAME);
         if (cardHolderByte != null) {
@@ -590,7 +604,7 @@ public class EmvParser {
      * @param pData card data
      * @author Johannes Zweng
      */
-    protected void extractCaPublicKeyIndex(final byte[] pData) {
+    public void extractCaPublicKeyIndex(final byte[] pData) {
         final byte[] caPubliceKeyIndex = TlvUtil.getValue(pData, EmvTags.CA_PUBLIC_KEY_INDEX_CARD);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("extracting ca pubkey index..");
@@ -613,7 +627,7 @@ public class EmvParser {
      * @param pData card data
      * @author Johannes Zweng
      */
-    protected void extractIssuerPublicKeyTags(final byte[] pData) {
+    public void extractIssuerPublicKeyTags(final byte[] pData) {
         final byte[] issuerPubKeyCert = TlvUtil.getValue(pData, EmvTags.ISSUER_PUBLIC_KEY_CERT);
         if (issuerPubKeyCert != null && issuerPubKeyCert.length > 0) {
             card.setIssuerPublicKeyCertificate(issuerPubKeyCert);
@@ -638,7 +652,7 @@ public class EmvParser {
      * @param pData card data
      * @author Johannes Zweng
      */
-    protected void extractIccPublicKeyTags(final byte[] pData) {
+    public void extractIccPublicKeyTags(final byte[] pData) {
         final byte[] iccPubKeyCert = TlvUtil.getValue(pData, EmvTags.ICC_PUBLIC_KEY_CERT);
         if (iccPubKeyCert != null && iccPubKeyCert.length > 0) {
             card.setIccPublicKeyCertificate(iccPubKeyCert);
@@ -661,7 +675,7 @@ public class EmvParser {
      * @param pData card data
      * @author Johannes Zweng
      */
-    protected void extractIccPinEnciphermentPublicKeyTags(final byte[] pData) {
+    public void extractIccPinEnciphermentPublicKeyTags(final byte[] pData) {
         final byte[] iccPinEncPubKeyCert = TlvUtil.getValue(pData, EmvTags.ICC_PIN_ENCIPHERMENT_PUBLIC_KEY_CERT);
         if (iccPinEncPubKeyCert != null && iccPinEncPubKeyCert.length > 0) {
             card.setIccPinEnciphermentPublicKeyCertificate(iccPinEncPubKeyCert);

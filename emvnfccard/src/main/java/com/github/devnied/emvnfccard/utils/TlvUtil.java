@@ -415,6 +415,51 @@ public final class TlvUtil {
 		return ret;
 	}
 
+	/**
+	 * Method used to get Tag value
+	 *
+	 * @param pData
+	 *            data
+	 * @param pTag
+	 *            tag to find
+	 * @return tag value or null
+	 */
+	public static byte[] setValue(final byte[] pData, final ITag tag, byte [] valueBytes) {
+
+		byte[] ret = null;
+
+		if (pData != null) {
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			ByteArrayInputStream stream = new ByteArrayInputStream(pData);
+			int size = stream.available();
+
+			while (stream.available() > 0) {
+				TLV tlv = TlvUtil.getNextTLV(stream);
+				if (tag.equals(tlv.getTag())) {
+					tlv.setValueBytes(valueBytes);
+					try {
+						outputStream.write(tlv.getTagBytes());
+						outputStream.write(tlv.getRawEncodedLengthBytes());
+						outputStream.write(tlv.getValueBytes());
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+
+				} else if (tlv.getTag().isConstructed()) {
+
+					byte[] tlvBytes = TlvUtil.setValue(tlv.getValueBytes(), tag, valueBytes);
+					try {
+						outputStream.write(tlvBytes);
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			}
+			return outputStream.toByteArray();
+		}
+		return null;
+	}
+
 	public static String prettyPrintAPDUResponse(final byte[] data, final int indentLength) {
 		StringBuilder buf = new StringBuilder();
 

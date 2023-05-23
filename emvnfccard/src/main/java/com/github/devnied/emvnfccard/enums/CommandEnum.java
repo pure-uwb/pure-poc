@@ -15,6 +15,9 @@
  */
 package com.github.devnied.emvnfccard.enums;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Enum which define all EMV apdu
  * 
@@ -41,7 +44,11 @@ public enum CommandEnum {
 	/**
 	 * GPO Command
 	 */
-	GET_DATA(0x80, 0xCA, 0x00, 0x00);
+	GET_DATA(0x80, 0xCA, 0x00, 0x00),
+
+	GEN_AC(0x80, 0xAE,0x00 , 0x00);
+
+
 
 	/**
 	 * Class byte
@@ -80,6 +87,19 @@ public enum CommandEnum {
 		this.ins = ins;
 		this.p1 = p1;
 		this.p2 = p2;
+	}
+
+	private static final Map<byte[], CommandEnum> lookup = new HashMap<>();
+
+	static {
+		for (CommandEnum d : CommandEnum.values()) {
+			lookup.put(
+				new byte[] {(byte)d.getCla(), (byte)d.getIns(), (byte)d.getP1(), (byte) d.getP2()} , d);
+		}
+	}
+
+	public static CommandEnum getEnum(byte [] cmd){
+		return lookup.get(cmd);
 	}
 
 	/**

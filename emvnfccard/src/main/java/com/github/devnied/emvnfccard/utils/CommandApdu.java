@@ -1,6 +1,13 @@
 package com.github.devnied.emvnfccard.utils;
 
+import static com.github.devnied.emvnfccard.utils.EnumUtils.getValue;
+
 import com.github.devnied.emvnfccard.enums.CommandEnum;
+import com.github.devnied.emvnfccard.exception.CommunicationException;
+
+import java.util.Arrays;
+
+import at.zweng.emv.utils.EmvParsingException;
 
 /*
  * Copyright 2010 Giesecke & Devrient GmbH.
@@ -98,4 +105,10 @@ public class CommandApdu {
 		return apdu;
 	}
 
+	public static CommandEnum getCommandEnum(byte [] command) throws EmvParsingException {
+		if (command == null || command.length < 4){
+			throw new EmvParsingException("Command should contain at least 4 byes");
+		}
+		return CommandEnum.getEnum(Arrays.copyOfRange(command, 0, 4));
+	}
 }

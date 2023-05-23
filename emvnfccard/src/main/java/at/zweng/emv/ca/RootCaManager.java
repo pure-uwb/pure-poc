@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
 
-import at.zweng.emv.R;
 import at.zweng.emv.utils.EmvParsingException;
 import fr.devnied.bitlib.BytesUtils;
 import lombok.NonNull;
@@ -23,9 +22,9 @@ import lombok.NonNull;
  */
 public class RootCaManager {
 
-    public RootCaManager(Context ctx) throws IOException {
+    public RootCaManager(Context ctx, int cardschemes_public_root_ca_keys_id) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        InputStream rawJsonInputStream = ctx.getResources().openRawResource(R.raw.cardschemes_public_root_ca_keys);
+        InputStream rawJsonInputStream = ctx.getResources().openRawResource(cardschemes_public_root_ca_keys_id);
         rootCAs = objectMapper.readValue(new InputStreamReader(rawJsonInputStream),
                 new TypeReference<Map<String, RootCa>>() {
                 });
