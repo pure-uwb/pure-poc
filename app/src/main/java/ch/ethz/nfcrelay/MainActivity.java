@@ -36,6 +36,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
+import com.example.emvextension.protocol.ProtocolModifier;
+import ch.ethz.nfcrelay.nfc.ProtocolModifierImpl;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -54,6 +56,7 @@ import ch.ethz.nfcrelay.mock.ReaderBackend;
 import ch.ethz.nfcrelay.nfc.Util;
 import ch.ethz.nfcrelay.nfc.card.ResponseResolver;
 import ch.ethz.nfcrelay.nfc.card.hce.EMVraceApduService;
+import ch.ethz.nfcrelay.nfc.pos.NfcChannel;
 import ch.ethz.nfcrelay.nfc.pos.RelayPosEmulator;
 
 public class MainActivity extends AppCompatActivity {
@@ -210,7 +213,9 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 showErrorOrWarning(e, false);
             }
-            new RelayPosEmulator(this, tagComm).start();
+            ProtocolModifier modifier = new ProtocolModifierImpl(this,true);
+            modifier.setNfcChannel(new NfcChannel(tagComm));
+            new RelayPosEmulator(this, tagComm,  modifier).start();
             if (isMock) {
                 EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercad_to_selecta_2chf));
                 new ReaderBackend(ip, PORT, emvTrace).start();

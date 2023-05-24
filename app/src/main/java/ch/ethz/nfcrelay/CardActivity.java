@@ -8,7 +8,11 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.emvextension.protocol.ProtocolModifier;
+import ch.ethz.nfcrelay.nfc.ProtocolModifierImpl;
+
 import ch.ethz.nfcrelay.nfc.Util;
+import ch.ethz.nfcrelay.nfc.card.hce.CommandDispatcherImpl;
 import ch.ethz.nfcrelay.nfc.card.hce.EMVraceApduService;
 
 public class CardActivity extends AppCompatActivity {
@@ -25,6 +29,10 @@ public class CardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_card);
 
         EMVraceApduService.cardActivity = this;
+        ProtocolModifier protocolModifier = new ProtocolModifierImpl(this,false);
+        CommandDispatcherImpl dispatcher =  new CommandDispatcherImpl(protocolModifier);
+        EMVraceApduService.dispatcher = dispatcher;
+        protocolModifier.setNfcChannel(dispatcher);
         ivOK = findViewById(R.id.ivOK);
         pbTransacting = findViewById(R.id.pbTransacting);
         tvMsg = findViewById(R.id.tvMsg);

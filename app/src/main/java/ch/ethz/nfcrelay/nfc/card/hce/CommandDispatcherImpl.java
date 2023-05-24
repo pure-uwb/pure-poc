@@ -1,38 +1,43 @@
-package ch.ethz.nfcrelay.nfc.card;
+package ch.ethz.nfcrelay.nfc.card.hce;
 
 import static com.example.emvextension.utils.Constants.EVT_CMD;
+import static com.github.devnied.emvnfccard.enums.CommandEnum.isExtensionCommand;
+import static com.github.devnied.emvnfccard.utils.CommandApdu.getCommandEnum;
 
 import com.example.emvextension.channel.Channel;
 import com.example.emvextension.protocol.ProtocolModifier;
+import com.github.devnied.emvnfccard.enums.CommandEnum;
 
+import at.zweng.emv.utils.EmvParsingException;
 import ch.ethz.nfcrelay.MainActivity;
-import ch.ethz.nfcrelay.nfc.card.hce.EMVraceApduService;
+import ch.ethz.nfcrelay.nfc.card.ResponseResolver;
 
-public class CommandDispatcher extends Channel implements ch.ethz.nfcrelay.nfc.card.hce.CommandDispatcher{
+public class CommandDispatcherImpl extends Channel implements ch.ethz.nfcrelay.nfc.card.hce.CommandDispatcher{
     byte [] cmd;
     EMVraceApduService hostApduService;
     ProtocolModifier modifier;
 
-    public CommandDispatcher(ProtocolModifier modifier) {
+    public CommandDispatcherImpl(ProtocolModifier modifier) {
         this.modifier = modifier;
     }
 
     @Override
     public void dispatch(EMVraceApduService hostApduService, String ip, int port, byte[] cmd, boolean isPPSECmd, MainActivity activity) {
-        if (isExtension(cmd)){
-            this.cmd = cmd;
-            this.hostApduService = hostApduService;
-            this.notifyAllListeners(EVT_CMD, null, null);
+        try {
+            if (isExtensionCommand(cmd)){
+                this.cmd = cmd;
+                this.hostApduService = hostApduService;
+                this.notifyAllListeners(EVT_CMD, null, null);
+            }else{
+                ResponseResolver responseResolver = new ResponseResolver(hostApduService, ip, port,
+                        cmd, false, null, modifier);
+
+                responseResolver.start();
+            }
+        } catch (EmvParsingException e) {
+            throw new RuntimeException(e);
         }
-        ResponseResolver responseResolver = new ResponseResolver(hostApduService, ip, port,
-                cmd, false, null, modifier);
 
-        responseResolver.start();
-    }
-
-    private boolean isExtension(byte [] cmd) {
-        //TODO: add TAG that identifies extension
-        return false;
     }
 
     @Override
