@@ -1,5 +1,7 @@
 package ch.ethz.nfcrelay;
 
+import static android.nfc.NfcAdapter.FLAG_READER_NFC_A;
+import static android.nfc.NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK;
 import static ch.ethz.nfcrelay.mock.Constants.isMock;
 
 import android.app.PendingIntent;
@@ -13,6 +15,7 @@ import android.content.SharedPreferences;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.nfc.NfcAdapter;
+import android.nfc.Tag;
 import android.nfc.cardemulation.CardEmulation;
 import android.nfc.tech.IsoDep;
 import android.nfc.tech.NfcA;
@@ -59,11 +62,12 @@ import ch.ethz.nfcrelay.nfc.card.hce.EMVraceApduService;
 import ch.ethz.nfcrelay.nfc.pos.NfcChannel;
 import ch.ethz.nfcrelay.nfc.pos.RelayPosEmulator;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NfcAdapter.ReaderCallback {
 
     private static final String[][] NFC_TECH_FILTER = new String[][]{new String[]{IsoDep.class.getName(), NfcA.class.getName(), NfcB.class.getName()}};
     private static final IntentFilter[] INTENT_FILTERS = new IntentFilter[]{new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED), new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)};
-    private static final int PORT = 8080;
+    private static final int PORT = 8081;
+    private static final int PORT_READER_TO_BACKEND = 8080;
 
     private LinearLayout layoutStatus;
     private TextView tvStatus, tvIP, tvLog;
@@ -98,11 +102,14 @@ public class MainActivity extends AppCompatActivity {
         fabSave.setOnClickListener(view -> saveToStorage());
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        nfcAdapter.enableReaderMode(this, this, FLAG_READER_NFC_A | FLAG_READER_SKIP_NDEF_CHECK, null);
         nfcIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : 0);
+//        nfcAdapter.enableForegroundDispatch(this, nfcIntent, INTENT_FILTERS, NFC_TECH_FILTER);
 
         applySettings();
         launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> applySettings());
     }
+
 
     private String getLocalIpAddress() {
         WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
@@ -158,6 +165,11 @@ public class MainActivity extends AppCompatActivity {
 
             fabCard.hide();
             fabSave.show();
+            try {
+                serverSocket = new ServerSocket(PORT_READER_TO_BACKEND);
+            } catch (IOException e) {
+                showErrorOrWarning(e, false);
+            }
 
         } else {
             setTitle(R.string.card_emulator);
@@ -169,6 +181,9 @@ public class MainActivity extends AppCompatActivity {
 
             fabCard.show();
             fabSave.hide();
+            if (nfcAdapter != null){
+                nfcAdapter.disableReaderMode(this);
+            }
         }
     }
 
@@ -180,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
         if (isPOS) {
             try {
                 if (nfcAdapter != null)
-                    nfcAdapter.enableForegroundDispatch(this, nfcIntent, INTENT_FILTERS, NFC_TECH_FILTER);
+                    nfcAdapter.enableReaderMode(this, this, FLAG_READER_NFC_A | FLAG_READER_SKIP_NDEF_CHECK, null);
             } catch (Exception e) {
                 showErrorOrWarning(e, true);
             }
@@ -195,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
     public void onPause() {
         //Disable reader mode when user leaves the activity
         super.onPause();
-        if (isPOS && nfcAdapter != null) nfcAdapter.disableForegroundDispatch(this);
+        nfcAdapter.disableReaderMode(this);
     }
 
     @Override
@@ -218,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
             new RelayPosEmulator(this, tagComm,  modifier).start();
             if (isMock) {
                 EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercad_to_selecta_2chf));
-                new ReaderBackend(ip, PORT, emvTrace).start();
+                new ReaderBackend(ip, PORT_READER_TO_BACKEND, emvTrace).start();
             }
         }
     }
@@ -323,5 +338,22 @@ public class MainActivity extends AppCompatActivity {
 
     public ServerSocket getServerSocket() {
         return serverSocket;
+    }
+
+    @Override
+    public void onTagDiscovered(Tag tag) {
+
+        if (isPOS) {
+            Log.i("MainActivity", "NEW INTENT");
+            tagComm = IsoDep.get(tag);
+            updateStatus(getString(R.string.card_connected), true);
+            ProtocolModifier modifier = new ProtocolModifierImpl(this,true);
+            modifier.setNfcChannel(new NfcChannel(tagComm));
+            new RelayPosEmulator(this, tagComm,  modifier).start();
+            if (isMock) {
+                EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercad_to_selecta_2chf));
+                new ReaderBackend(ip, PORT_READER_TO_BACKEND, emvTrace).start();
+            }
+        }
     }
 }
