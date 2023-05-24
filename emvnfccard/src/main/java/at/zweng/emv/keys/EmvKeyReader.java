@@ -501,7 +501,7 @@ public class EmvKeyReader {
      * @param modulus  modulus
      * @return data ^ exponent mod modulus
      */
-    private static byte[] calculateRSA(byte[] data, BigInteger exponent, BigInteger modulus) throws EmvParsingException {
+    public static byte[] calculateRSA(byte[] data, BigInteger exponent, BigInteger modulus) throws EmvParsingException {
         // bigInts here are unsigned:
         BigInteger dataBigInt = new BigInteger(1, data);
 

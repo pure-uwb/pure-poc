@@ -424,12 +424,16 @@ public final class TlvUtil {
 	 *            tag to find
 	 * @return tag value or null
 	 */
-	public static byte[] setValue(final byte[] pData, final ITag tag, byte [] valueBytes) {
+	public static byte[] setValue(final byte[] pData, final ITag tag, byte [] valueBytes, boolean rec) {
 
 		byte[] ret = null;
 
 		if (pData != null) {
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			if (!rec){
+				outputStream.write(pData[0]);
+				outputStream.write(pData[1]);
+			}
 			ByteArrayInputStream stream = new ByteArrayInputStream(pData);
 			int size = stream.available();
 
@@ -447,9 +451,17 @@ public final class TlvUtil {
 
 				} else if (tlv.getTag().isConstructed()) {
 
-					byte[] tlvBytes = TlvUtil.setValue(tlv.getValueBytes(), tag, valueBytes);
+					byte[] tlvBytes = TlvUtil.setValue(tlv.getValueBytes(), tag, valueBytes, true);
 					try {
 						outputStream.write(tlvBytes);
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+				} else{
+					try {
+						outputStream.write(tlv.getTagBytes());
+						outputStream.write(tlv.getRawEncodedLengthBytes());
+						outputStream.write(tlv.getValueBytes());
 					} catch (IOException e) {
 						throw new RuntimeException(e);
 					}

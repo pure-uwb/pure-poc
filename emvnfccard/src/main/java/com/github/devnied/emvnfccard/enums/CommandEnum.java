@@ -15,8 +15,14 @@
  */
 package com.github.devnied.emvnfccard.enums;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+
+import at.zweng.emv.utils.EmvParsingException;
+import fr.devnied.bitlib.BytesUtils;
 
 /**
  * Enum which define all EMV apdu
@@ -46,7 +52,14 @@ public enum CommandEnum {
 	 */
 	GET_DATA(0x80, 0xCA, 0x00, 0x00),
 
-	GEN_AC(0x80, 0xAE,0x00 , 0x00);
+	GEN_AC(0x80, 0xAE,0x00 , 0x00),
+
+	// Custom
+
+	EXT_CL_HELLO(0x80, 0xD0, 0x00, 0x00),
+	EXT_SIGN(0x80, 0xD1, 0x00, 0x00),
+	EXT_SELECT_AID(0x80, 0xD2, 0x00, 0x00);
+
 
 
 
@@ -89,17 +102,30 @@ public enum CommandEnum {
 		this.p2 = p2;
 	}
 
-	private static final Map<byte[], CommandEnum> lookup = new HashMap<>();
+	private static final Map<String, CommandEnum> lookup = new HashMap<>();
+	private static final Set<CommandEnum> extensionCommands = new HashSet<>();
 
 	static {
 		for (CommandEnum d : CommandEnum.values()) {
 			lookup.put(
-				new byte[] {(byte)d.getCla(), (byte)d.getIns(), (byte)d.getP1(), (byte) d.getP2()} , d);
+					BytesUtils.bytesToStringNoSpace(new byte[] {(byte)d.getCla(), (byte)d.getIns(), (byte)d.getP1(), (byte) d.getP2()}) , d);
 		}
+
+		extensionCommands.add(EXT_CL_HELLO);
+		extensionCommands.add(EXT_SIGN);
+		extensionCommands.add(EXT_SELECT_AID);
 	}
 
 	public static CommandEnum getEnum(byte [] cmd){
-		return lookup.get(cmd);
+		return lookup.get( BytesUtils.bytesToStringNoSpace(cmd));
+	}
+
+	public static boolean isExtensionCommand(byte[] cmd) throws EmvParsingException {
+		if (cmd == null || cmd.length < 4){
+			throw new EmvParsingException("Command should contain at least 4 byes");
+		}
+		CommandEnum d = getEnum((Arrays.copyOfRange(cmd, 0, 4)));
+		return extensionCommands.contains(d);
 	}
 
 	/**

@@ -272,7 +272,7 @@ public class EmvParser {
 	 *            FCI proprietary template data
      * @return the Aid to select
      */
-    protected List<byte[]> getAids(final byte[] pData) {
+    public List<byte[]> getAids(final byte[] pData) {
         List<byte[]> ret = new ArrayList<byte[]>();
         List<TLV> listTlv = TlvUtil.getlistTLV(pData, EmvTags.AID_CARD, EmvTags.KERNEL_IDENTIFIER);
         for (TLV tlv : listTlv) {
@@ -358,7 +358,7 @@ public class EmvParser {
 	 *            card number
      * @return card scheme
      */
-    protected EmvCardScheme findCardScheme(final String pAid, final String pCardNumber) {
+    public EmvCardScheme findCardScheme(final String pAid, final String pCardNumber) {
         EmvCardScheme type = EmvCardScheme.getCardTypeByAid(pAid);
         // Get real type for french card
         if (type == EmvCardScheme.CB) {
