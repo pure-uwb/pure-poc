@@ -40,13 +40,15 @@ public class ResponseResolver extends Thread {
     public void run() {
         try {
             Log.i("ResponderResolver", "CMD:" + bytesToHex(cmd));
+            Log.i("ResponderResolver", "IP: "+ ip);
+            Log.i("ResponderResolver", "PORT" + port);
             //create socket
             Socket socket = new Socket(ip, port);
 
             //write APDU command to socket
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
             out.write(cmd);
-
+            Log.i("ResponderResolver", "cmd sent to backend");
             //read APDU response
             DataInputStream in = new DataInputStream(socket.getInputStream());
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -59,8 +61,10 @@ public class ResponseResolver extends Thread {
                 byte[] resp = baos.toByteArray();
                 boolean responseOK = Util.responseOK(resp);
 
-                if (isPPSECmd && responseOK) //launch Wallet Activity
+                if (isPPSECmd && responseOK) { //launch Wallet Activity
+                    Log.i("ResponseResolver", "Start card activity");
                     activity.startCardEmulator();
+                }
 
                 else if (!isPPSECmd && hostApduService != null){
                     // HERE ON gen_ac_command do:

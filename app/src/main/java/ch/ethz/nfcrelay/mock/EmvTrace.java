@@ -15,11 +15,11 @@ import ch.ethz.nfcrelay.nfc.Util;
 public class EmvTrace {
 
     private final Iterator<byte[]> commandsIterator;
-    private final Iterator<byte[]> responsesIterator;
+    private Iterator<byte[]> responsesIterator;
+    private final List<byte[]> responses = new ArrayList<>();
 
     public EmvTrace(InputStream inputStream) {
         List<byte[]> commands = new ArrayList<>();
-        List<byte[]> responses = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         try {
             String line;
@@ -62,5 +62,9 @@ public class EmvTrace {
 
     public byte[] getResponse() {
         return responsesIterator.next();
+    }
+
+    public void resetResponses(){
+        responsesIterator = responses.iterator();
     }
 }

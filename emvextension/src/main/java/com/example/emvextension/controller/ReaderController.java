@@ -2,12 +2,10 @@
 package com.example.emvextension.controller;
 
 import static com.example.emvextension.Apdu.HexUtils.bin2hex;
-import static com.example.emvextension.channel.ReaderNfcChannel.EVT_NEW_TAG;
 
 import android.util.Log;
 
 import com.example.emvextension.channel.Channel;
-import com.example.emvextension.channel.ReaderNfcChannel;
 import com.example.emvextension.protocol.ApplicationCryptogram;
 import com.example.emvextension.protocol.ProtocolExecutor;
 import com.example.emvextension.protocol.ReaderStateMachine;
@@ -61,5 +59,11 @@ public class ReaderController extends PaymentController{
         emvChannel.write(protocol.getSignatureCommand());
         protocol.verifySignature(emvChannel.read(), paymentSession);
         protocol.finish(paymentSession);
+        Thread.currentThread().interrupt();
+    }
+
+    public boolean isSuccess(){
+        Log.i("ReaderController", "Distance measured:" + paymentSession.getDistance());
+        return paymentSession.isSuccess();
     }
 }

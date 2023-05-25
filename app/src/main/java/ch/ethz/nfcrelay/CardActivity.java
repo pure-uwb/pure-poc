@@ -29,7 +29,7 @@ public class CardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_card);
 
         EMVraceApduService.cardActivity = this;
-        ProtocolModifier protocolModifier = new ProtocolModifierImpl(this,false);
+        ProtocolModifier protocolModifier = Provider.getModifier(this,false);
         CommandDispatcherImpl dispatcher =  new CommandDispatcherImpl(protocolModifier);
         EMVraceApduService.dispatcher = dispatcher;
         protocolModifier.setNfcChannel(dispatcher);

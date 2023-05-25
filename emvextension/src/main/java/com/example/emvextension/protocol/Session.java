@@ -134,7 +134,7 @@ public class Session  implements PropertyChangeObservable {
         //Necessary to register the time it took to finish
 
         notifyAllListeners("state_finish", stateMachine.getStateString(),"EXIT");
-        notifyAllListeners("success", !this.getSuccess(), this.getSuccess());
+        notifyAllListeners("success", !this.isSuccess(), this.isSuccess());
     }
 
     public byte[] getTranscript(){
@@ -187,7 +187,7 @@ public class Session  implements PropertyChangeObservable {
         this.signVerif = b;
     }
 
-    public boolean getSuccess(){
+    public boolean isSuccess(){
         return this.signVerif & this.distance < MAX_DISTANCE;
     }
 

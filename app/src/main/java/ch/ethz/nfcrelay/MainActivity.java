@@ -2,7 +2,8 @@ package ch.ethz.nfcrelay;
 
 import static android.nfc.NfcAdapter.FLAG_READER_NFC_A;
 import static android.nfc.NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK;
-import static ch.ethz.nfcrelay.mock.Constants.isMock;
+import static ch.ethz.nfcrelay.nfc.BuildSettings.checkRemoteConnection;
+import static ch.ethz.nfcrelay.nfc.BuildSettings.mockBackend;
 
 import android.app.PendingIntent;
 import android.content.ClipData;
@@ -40,7 +41,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
 import com.example.emvextension.protocol.ProtocolModifier;
-import ch.ethz.nfcrelay.nfc.ProtocolModifierImpl;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
     private static final String[][] NFC_TECH_FILTER = new String[][]{new String[]{IsoDep.class.getName(), NfcA.class.getName(), NfcB.class.getName()}};
     private static final IntentFilter[] INTENT_FILTERS = new IntentFilter[]{new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED), new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)};
-    private static final int PORT = 8081;
+    private static final int PORT = 8080;
     private static final int PORT_READER_TO_BACKEND = 8080;
 
     private LinearLayout layoutStatus;
@@ -166,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             fabCard.hide();
             fabSave.show();
             try {
+                Log.i("MainActivity", "Start Socket on" + PORT_READER_TO_BACKEND);
                 serverSocket = new ServerSocket(PORT_READER_TO_BACKEND);
             } catch (IOException e) {
                 showErrorOrWarning(e, false);
@@ -213,34 +214,34 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         nfcAdapter.disableReaderMode(this);
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        //A card is detected
-        super.onNewIntent(intent);
-
-        if (isPOS) {
-            Log.i("MainActivity", "NEW INTENT");
-            tagComm = IsoDep.get(intent.getParcelableExtra(NfcAdapter.EXTRA_TAG));
-            updateStatus(getString(R.string.card_connected), true);
-
-            try {
-                serverSocket = new ServerSocket(PORT);
-            } catch (IOException e) {
-                showErrorOrWarning(e, false);
-            }
-            ProtocolModifier modifier = new ProtocolModifierImpl(this,true);
-            modifier.setNfcChannel(new NfcChannel(tagComm));
-            new RelayPosEmulator(this, tagComm,  modifier).start();
-            if (isMock) {
-                EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercad_to_selecta_2chf));
-                new ReaderBackend(ip, PORT_READER_TO_BACKEND, emvTrace).start();
-            }
-        }
-    }
+//    @Override
+//    protected void onNewIntent(Intent intent) {
+//        //A card is detected
+//        super.onNewIntent(intent);
+//
+//        if (isPOS) {
+//            Log.i("MainActivity", "NEW INTENT");
+//            tagComm = IsoDep.get(intent.getParcelableExtra(NfcAdapter.EXTRA_TAG));
+//            updateStatus(getString(R.string.card_connected), true);
+//
+//            try {
+//                serverSocket = new ServerSocket(PORT);
+//            } catch (IOException e) {
+//                showErrorOrWarning(e, false);
+//            }
+//            ProtocolModifier modifier = new ProtocolModifierImpl(this,true);
+//            modifier.setNfcChannel(new NfcChannel(tagComm));
+//            new RelayPosEmulator(this, tagComm,  modifier).start();
+//            if (mockBackend) {
+//                EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercad_to_selecta_2chf));
+//                new ReaderBackend(ip, PORT_READER_TO_BACKEND, emvTrace).start();
+//            }
+//        }
+//    }
 
     public void tryToStartCardEmulator() {
         try {
-            if (isMock) {
+            if (mockBackend) {
                 EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercad_to_selecta_2chf));
                 Thread cardBackend = CardBackend.getInstance( PORT, emvTrace);
                 cardBackend.start();
@@ -256,7 +257,11 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             } else {
                 //test connection with the remote POS emulator
                 //if successful, such thread will launch the card activity
-                new ResponseResolver(null, ip, PORT, Util.PPSE_APDU_SELECT, true, this, null).start();
+                if(checkRemoteConnection){
+                    new ResponseResolver(null, ip, PORT, Util.PPSE_APDU_SELECT, true, this, null).start();
+                }else{
+                    startCardEmulator();
+                }
             }
             //new ResponseResolver(null, ip, PORT,
             //        Util.PPSE_APDU_SELECT, true, this).start();
@@ -344,14 +349,15 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     public void onTagDiscovered(Tag tag) {
 
         if (isPOS) {
-            Log.i("MainActivity", "NEW INTENT");
+            Log.i("MainActivity", "New Tag");
             tagComm = IsoDep.get(tag);
             updateStatus(getString(R.string.card_connected), true);
-            ProtocolModifier modifier = new ProtocolModifierImpl(this,true);
+            ProtocolModifier modifier = Provider.getModifier(this, true);
             modifier.setNfcChannel(new NfcChannel(tagComm));
             new RelayPosEmulator(this, tagComm,  modifier).start();
-            if (isMock) {
+            if (mockBackend) {
                 EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercad_to_selecta_2chf));
+                Log.i("MainActivity", "Reader Backend create");
                 new ReaderBackend(ip, PORT_READER_TO_BACKEND, emvTrace).start();
             }
         }

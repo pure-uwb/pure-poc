@@ -2,6 +2,8 @@ package com.example.emvextension;
 
 import static at.zweng.emv.utils.EmvUtils.getUnsignedBytes;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -43,7 +45,7 @@ public class Crypto {
         }
         PKCS8EncodedKeySpec keySpec = null;
         try {
-            keySpec = new PKCS8EncodedKeySpec(inputStream.readAllBytes());
+            keySpec = new PKCS8EncodedKeySpec(IOUtils.toByteArray(inputStream));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -63,7 +65,7 @@ public class Crypto {
         }
         X509EncodedKeySpec keySpec = null;
         try {
-            keySpec = new X509EncodedKeySpec(inputStream.readAllBytes());
+            keySpec = new X509EncodedKeySpec(IOUtils.toByteArray(inputStream));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -76,7 +78,7 @@ public class Crypto {
 
     public static byte [] loadCertificate(InputStream inputStream){
         try {
-            byte[] certHex = inputStream.readAllBytes();
+            byte[] certHex = IOUtils.toByteArray(inputStream);
             return BytesUtils.fromString(new String(certHex, StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new RuntimeException(e);

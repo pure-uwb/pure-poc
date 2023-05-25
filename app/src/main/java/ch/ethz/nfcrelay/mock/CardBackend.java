@@ -60,7 +60,9 @@ public class CardBackend extends Thread {
                  */
 
                 byte[] resp = emvTrace.getResponse();
-
+                if (!emvTrace.responsesHasNext()){
+                    emvTrace.resetResponses();
+                }
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                 out.write(resp);
 

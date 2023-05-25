@@ -1,4 +1,4 @@
-package com.example.emvextension.protocol;
+package com.example.emvextension.jobs;
 
 import static at.zweng.emv.keys.EmvKeyReader.calculateRSA;
 import static at.zweng.emv.utils.EmvUtils.getUnsignedBytes;
@@ -7,6 +7,7 @@ import static at.zweng.emv.utils.EmvUtils.notEmpty;
 import android.app.Activity;
 import android.util.Log;
 
+import com.example.emvextension.protocol.ApplicationCryptogram;
 import com.github.devnied.emvnfccard.iso7816emv.EmvTags;
 import com.github.devnied.emvnfccard.iso7816emv.impl.TagImpl;
 import com.github.devnied.emvnfccard.model.EmvCard;

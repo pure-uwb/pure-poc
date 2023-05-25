@@ -3,6 +3,7 @@ package ch.ethz.nfcrelay.nfc;
 import static com.github.devnied.emvnfccard.utils.CommandApdu.getCommandEnum;
 
 import android.app.Activity;
+import android.util.Log;
 
 import com.example.emvextension.Apdu.ApduWrapperCard;
 import com.example.emvextension.Apdu.ApduWrapperReader;
@@ -10,9 +11,10 @@ import com.example.emvextension.channel.Channel;
 import com.example.emvextension.channel.UartChannelMock;
 import com.example.emvextension.controller.CardController;
 import com.example.emvextension.controller.ReaderController;
+import com.example.emvextension.jobs.ReaderControllerJob;
 import com.example.emvextension.protocol.ApplicationCryptogram;
 import com.example.emvextension.protocol.CardStateMachine;
-import com.example.emvextension.protocol.EmvParserJob;
+import com.example.emvextension.jobs.EmvParserJob;
 import com.example.emvextension.protocol.ProtocolExecutor;
 import com.example.emvextension.protocol.ProtocolModifier;
 import com.example.emvextension.protocol.ReaderStateMachine;
@@ -28,6 +30,7 @@ import java.util.Arrays;
 import java.util.concurrent.Semaphore;
 
 import at.zweng.emv.utils.EmvParsingException;
+import ch.ethz.nfcrelay.Provider;
 import fr.devnied.bitlib.BytesUtils;
 
 public class ProtocolModifierImpl implements ProtocolModifier {
@@ -97,24 +100,33 @@ public class ProtocolModifierImpl implements ProtocolModifier {
                     Semaphore s = new Semaphore(0);
 
                     new EmvParserJob(parser.getCard(), s, res, AC, activity, com.github.devnied.emvnfccard.R.raw.cardschemes_public_root_ca_keys).start();
-                    // Controller MUST wait on the semaphore before signing
+                    // Controller MUST wait on the semaphore s before signing
                     if (isReader){
                         ReaderController controller = new ReaderController(nfcChannel,
-                                new UartChannelMock(),
+                                Provider.getUartChannel(activity),
                                 new ProtocolExecutor(new ApduWrapperReader(), activity),
                                 s, AC);
                         controller.registerSessionListener(new Timer(new ReaderStateMachine()));
-                        controller.start();
+                        Thread t = new ReaderControllerJob(controller);
+                        t.start();
+                        try {
+                            t.join();
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        if (!controller.isSuccess()){
+                            res = new byte[] {(byte) 0x00};
+                            Log.e("ProtocolModifierImpl", "Extension protocol failed");
+                        }
+
                     }else{
-                        //TODO add semaphore for the signature
                         CardController controller = new CardController(nfcChannel,
-                                new UartChannelMock(),
+                                Provider.getUartChannel(activity),
                                 new ProtocolExecutor(new ApduWrapperCard(), activity),
                                 s,
                                 AC);
                         controller.registerSessionListener(new Timer(new CardStateMachine()));
                     }
-                    // If extension has to be executed, start extension execution
                     break;
                 }
 
