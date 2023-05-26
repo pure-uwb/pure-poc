@@ -52,6 +52,7 @@ import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.concurrent.Semaphore;
 
 import ch.ethz.nfcrelay.mock.CardBackend;
 import ch.ethz.nfcrelay.mock.EmvTrace;
@@ -81,9 +82,11 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     private PendingIntent nfcIntent;
     private IsoDep tagComm;
     private boolean isPOS;
+    private Semaphore readerSemaphore;
 
     private ActivityResultLauncher<Intent> launcher;
     private CharSequence logBackup = "";
+    private FloatingActionButton fabPay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,15 +100,15 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         tvLog.setMovementMethod(new ScrollingMovementMethod());
         fabCard = findViewById(R.id.fabCard);
         fabSave = findViewById(R.id.fabSave);
-
+        fabPay = findViewById(R.id.fabEuro);
         fabCard.setOnClickListener(view -> tryToStartCardEmulator());
         fabSave.setOnClickListener(view -> saveToStorage());
-
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
         nfcAdapter.enableReaderMode(this, this, FLAG_READER_NFC_A | FLAG_READER_SKIP_NDEF_CHECK, null);
-        nfcIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : 0);
-//        nfcAdapter.enableForegroundDispatch(this, nfcIntent, INTENT_FILTERS, NFC_TECH_FILTER);
-
+        readerSemaphore = new Semaphore(0);
+        fabPay.setOnClickListener(view -> {
+            readerSemaphore.release();
+        });
         applySettings();
         launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> applySettings());
     }
@@ -182,6 +185,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
             fabCard.show();
             fabSave.hide();
+            fabPay.hide();
             if (nfcAdapter != null){
                 nfcAdapter.disableReaderMode(this);
             }
@@ -194,12 +198,12 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         super.onResume();
 
         if (isPOS) {
-            try {
-                if (nfcAdapter != null)
-                    nfcAdapter.enableReaderMode(this, this, FLAG_READER_NFC_A | FLAG_READER_SKIP_NDEF_CHECK, null);
-            } catch (Exception e) {
-                showErrorOrWarning(e, true);
-            }
+//            try {
+//                if (nfcAdapter != null)
+//                    nfcAdapter.enableReaderMode(this, this, FLAG_READER_NFC_A | FLAG_READER_SKIP_NDEF_CHECK, null);
+//            } catch (Exception e) {
+//                showErrorOrWarning(e, true);
+//            }
 
             if (tagComm != null && tagComm.isConnected())
                 updateStatus(getString(R.string.card_connected), true);
@@ -246,6 +250,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 Thread cardBackend = CardBackend.getInstance( PORT, emvTrace);
                 cardBackend.start();
                 Log.i("MainActivity", "Started mock card backend");
+                ip = getLocalIpAddress();
             }
             CardEmulation cardEmulation = CardEmulation.getInstance(NfcAdapter.getDefaultAdapter(this));
             ComponentName cmpName = new ComponentName(this, EMVraceApduService.class);
@@ -260,6 +265,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 if(checkRemoteConnection){
                     new ResponseResolver(null, ip, PORT, Util.PPSE_APDU_SELECT, true, this, null).start();
                 }else{
+                    Log.i(this.getClass().getName(), "Start card emulator");
                     startCardEmulator();
                 }
             }
@@ -354,12 +360,12 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             updateStatus(getString(R.string.card_connected), true);
             ProtocolModifier modifier = Provider.getModifier(this, true);
             modifier.setNfcChannel(new NfcChannel(tagComm));
-            new RelayPosEmulator(this, tagComm,  modifier).start();
             if (mockBackend) {
                 EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercad_to_selecta_2chf));
                 Log.i("MainActivity", "Reader Backend create");
-                new ReaderBackend(ip, PORT_READER_TO_BACKEND, emvTrace).start();
+                new ReaderBackend(getLocalIpAddress(), PORT_READER_TO_BACKEND, emvTrace).start();
             }
+            new RelayPosEmulator(this, tagComm,  modifier, readerSemaphore).start();
         }
     }
 }

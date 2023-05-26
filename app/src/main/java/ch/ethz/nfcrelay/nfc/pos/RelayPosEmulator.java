@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.concurrent.Semaphore;
 
 import ch.ethz.nfcrelay.MainActivity;
 import ch.ethz.nfcrelay.R;
@@ -22,24 +23,13 @@ public class RelayPosEmulator extends Thread {
     private final MainActivity activity;
     private final IsoDep tagComm;
     private final ProtocolModifier modifier;
+    private final Semaphore semaphore;
 
-    public RelayPosEmulator(MainActivity activity, IsoDep tagComm) {
-        this.activity = activity;
-        this.tagComm = tagComm;
-        this.modifier = null;
-        try {
-            if (tagComm != null && !tagComm.isConnected())
-                tagComm.connect();
-
-        } catch (IOException e) {
-            activity.showErrorOrWarning(e, true);
-        }
-    }
-
-    public RelayPosEmulator(MainActivity activity, IsoDep tagComm, ProtocolModifier modifier) {
+    public RelayPosEmulator(MainActivity activity, IsoDep tagComm, ProtocolModifier modifier, Semaphore s) {
         this.activity = activity;
         this.tagComm = tagComm;
         this.modifier = modifier;
+        this.semaphore = s;
         try {
             if (tagComm != null && !tagComm.isConnected())
                 tagComm.connect();
@@ -68,10 +58,11 @@ public class RelayPosEmulator extends Thread {
 
             //execute transaction
             ServerSocket serverSocket = activity.getServerSocket();
+            Log.i(this.getName(), "Wait for merchant to start a transaction");
+            semaphore.acquire();
             while (true) {
                 //waiting for connection with remote card emulator
                 Socket socket = serverSocket.accept();
-
                 //read APDU command from socket
                 DataInputStream in = new DataInputStream(socket.getInputStream());
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -118,6 +109,7 @@ public class RelayPosEmulator extends Thread {
             }
 
         } catch (Exception e) {
+            semaphore.release();
             activity.showErrorOrWarning(e, true);
         }
     }

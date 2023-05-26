@@ -45,7 +45,6 @@ public class EmvTrace {
         }
         commandsIterator = commands.iterator();
         responsesIterator = responses.iterator();
-        commandsIterator.next();
     }
 
     public boolean commandsHasNext() {

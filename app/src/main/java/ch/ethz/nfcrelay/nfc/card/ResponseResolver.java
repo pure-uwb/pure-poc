@@ -54,7 +54,7 @@ public class ResponseResolver extends Thread {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
             int length = in.read(buffer);
-
+            Log.i(this.getName(), "Reade " + length + "bytes");
             //process APDU response accordingly
             if (length >= 0 && length < 1024) {
                 baos.write(buffer, 0, length);
@@ -84,8 +84,8 @@ public class ResponseResolver extends Thread {
             socket.close();
 
         } catch (Exception e) {
-            if (isPPSECmd)
-                activity.showErrorOrWarning(e, false);
+            Log.e(this.getName(), e.toString());
+            activity.showErrorOrWarning(e, false);
         }
     }
 }

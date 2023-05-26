@@ -70,4 +70,13 @@
         android:layout_margin="16dp"
         android:src="@drawable/ic_outline_save_24" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabEuro"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_margin="16dp"
+        android:src="@drawable/baseline_euro_24" />
+
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
