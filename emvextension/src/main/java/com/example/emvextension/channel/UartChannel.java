@@ -61,7 +61,7 @@ public class UartChannel extends Channel implements SerialInputOutputManager.Lis
         UsbSerialDriver driver = availableDrivers.get(0);
         if (!manager.hasPermission(driver.getDevice())) {
             Log.i("UART", "Request permission");
-            int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_MUTABLE : 0;
+            int flags = PendingIntent.FLAG_MUTABLE;
             PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(activity, 0, new Intent(INTENT_ACTION_GRANT_USB), flags);
             manager.requestPermission(driver.getDevice(), usbPermissionIntent);
             return;

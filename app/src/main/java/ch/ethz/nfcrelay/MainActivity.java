@@ -4,6 +4,7 @@ import static android.nfc.NfcAdapter.FLAG_READER_NFC_A;
 import static android.nfc.NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK;
 import static ch.ethz.nfcrelay.nfc.BuildSettings.checkRemoteConnection;
 import static ch.ethz.nfcrelay.nfc.BuildSettings.mockBackend;
+import static ch.ethz.nfcrelay.nfc.BuildSettings.mockUart;
 
 import android.app.PendingIntent;
 import android.content.ClipData;
@@ -13,6 +14,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.hardware.usb.UsbManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.nfc.NfcAdapter;
@@ -39,9 +41,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
+import com.example.emvextension.BuildConfig;
 import com.example.emvextension.protocol.ProtocolModifier;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
+import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -51,6 +56,7 @@ import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import ch.ethz.nfcrelay.mock.CardBackend;
@@ -110,6 +116,27 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         });
         applySettings();
         launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> applySettings());
+        if(!mockUart){
+           initializeUart();
+        }
+    }
+
+    private void initializeUart(){
+        UsbManager manager = (UsbManager) this.getBaseContext().getSystemService(Context.USB_SERVICE);
+        List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager);
+        if (availableDrivers.isEmpty()) {
+            return;
+        }
+
+        // Open a connection to the first available driver.
+        UsbSerialDriver driver = availableDrivers.get(0);
+        if (!manager.hasPermission(driver.getDevice())) {
+            Log.i("UART", "Request permission");
+            int flags = PendingIntent.FLAG_MUTABLE;
+            String INTENT_ACTION_GRANT_USB = BuildConfig.LIBRARY_PACKAGE_NAME + ".GRANT_USB";
+            PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(INTENT_ACTION_GRANT_USB), flags);
+            manager.requestPermission(driver.getDevice(), usbPermissionIntent);
+        }
     }
 
 

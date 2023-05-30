@@ -26,17 +26,21 @@ import com.github.devnied.emvnfccard.parser.EmvParser;
 import com.github.devnied.emvnfccard.utils.TlvUtil;
 import com.github.devnied.emvnfccard.utils.TrackUtils;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.concurrent.Semaphore;
 
 import at.zweng.emv.utils.EmvParsingException;
+import ch.ethz.nfcrelay.MainActivity;
 import ch.ethz.nfcrelay.Provider;
 import fr.devnied.bitlib.BytesUtils;
 
-public class ProtocolModifierImpl implements ProtocolModifier {
+public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeListener {
+    private final Semaphore semaphore;
     public boolean executeExtension = true;
     private final EmvParser parser = new EmvParser(true);
-    private final byte EXTENSION_PROTOCOL_AIP_MASK = (byte)0x2;
+    private final byte EXTENSION_PROTOCOL_AIP_MASK = (byte) 0x2;
     private boolean isReader;
 
     private Channel nfcChannel;
@@ -44,9 +48,10 @@ public class ProtocolModifierImpl implements ProtocolModifier {
     private Activity activity;
     private final String TAG = ProtocolModifierImpl.class.getName();
 
-    public ProtocolModifierImpl(Activity activity,  boolean isReader) {
+    public ProtocolModifierImpl(Activity activity, boolean isReader) {
         this.isReader = isReader;
         this.activity = activity;
+        this.semaphore = new Semaphore(0);
     }
 
     @Override
@@ -56,7 +61,7 @@ public class ProtocolModifierImpl implements ProtocolModifier {
             // NOTE: In GEN AC, P1 is variable. Enum looks for P1 = 0x00 to recognise GEN AC.
             cmdEnum[2] = (byte) 0x00;
         }
-        if (cmd[0] == (byte) 0x00 & cmd[1] == (byte) 0xB2){
+        if (cmd[0] == (byte) 0x00 & cmd[1] == (byte) 0xB2) {
             cmdEnum[2] = (byte) 0x00;
             cmdEnum[3] = (byte) 0x00;
         }
@@ -80,19 +85,20 @@ public class ProtocolModifierImpl implements ProtocolModifier {
                 // forwarding it to the backend.
                 // If EXTENSION_PROTOCOL is NOT set, then we are the card and we have to set it to
                 // communicate to the reader that we are capable of executing ranging.
-                byte [] aip = TlvUtil.getValue(res, EmvTags.APPLICATION_INTERCHANGE_PROFILE);
+                byte[] aip = TlvUtil.getValue(res, EmvTags.APPLICATION_INTERCHANGE_PROFILE);
 
-                if(isReader){
+                if (isReader) {
                     executeExtension = ((aip[1] & EXTENSION_PROTOCOL_AIP_MASK) > 0);
-                    aip[1] = (byte)(aip[1] & (~EXTENSION_PROTOCOL_AIP_MASK)); // SET EXT to 0
-                }else{
-                    aip[1] = (byte)(aip[1] | EXTENSION_PROTOCOL_AIP_MASK);    // SET EXT to 1
+                    aip[1] = (byte) (aip[1] & (~EXTENSION_PROTOCOL_AIP_MASK)); // SET EXT to 0
+                } else {
+                    aip[1] = (byte) (aip[1] | EXTENSION_PROTOCOL_AIP_MASK);    // SET EXT to 1
                 }
                 res = TlvUtil.setValue(res, EmvTags.APPLICATION_INTERCHANGE_PROFILE, aip, false);
                 break;
 
             case GEN_AC:
-                if (executeExtension){
+                if (executeExtension) {
+                    Log.i(this.getClass().getName(), "Start of extension");
                     EmvCard card = parser.getCard();
                     card.setType(parser.findCardScheme(card.getAid(), card.getCardNumber()));
                     // Derive the AC in parallel
@@ -101,25 +107,27 @@ public class ProtocolModifierImpl implements ProtocolModifier {
 
                     new EmvParserJob(parser.getCard(), s, res, AC, activity, com.github.devnied.emvnfccard.R.raw.cardschemes_public_root_ca_keys).start();
                     // Controller MUST wait on the semaphore s before signing
-                    if (isReader){
+                    if (isReader) {
                         ReaderController controller = new ReaderController(nfcChannel,
                                 Provider.getUartChannel(activity),
                                 new ProtocolExecutor(new ApduWrapperReader(), activity),
                                 s, AC);
                         controller.registerSessionListener(new Timer(new ReaderStateMachine()));
+                        controller.registerSessionListener(this);
                         Thread t = new ReaderControllerJob(controller);
                         t.start();
                         try {
-                            t.join();
+                            semaphore.acquire();
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
-                        if (!controller.isSuccess()){
-                            res = new byte[] {(byte) 0x00};
+                        ((MainActivity) activity).appendToLog(controller.getLog());
+                        if (!controller.isSuccess()) {
+                            res = new byte[]{(byte) 0x00};
                             Log.e("ProtocolModifierImpl", "Extension protocol failed");
                         }
 
-                    }else{
+                    } else {
                         CardController controller = new CardController(nfcChannel,
                                 Provider.getUartChannel(activity),
                                 new ProtocolExecutor(new ApduWrapperCard(), activity),
@@ -135,7 +143,7 @@ public class ProtocolModifierImpl implements ProtocolModifier {
                  * Extention protocol
                  * */
                 // Track AID
-                String aid =  BytesUtils.bytesToStringNoSpace(TlvUtil.getValue(res, EmvTags.DEDICATED_FILE_NAME));
+                String aid = BytesUtils.bytesToStringNoSpace(TlvUtil.getValue(res, EmvTags.DEDICATED_FILE_NAME));
                 parser.getCard().setAid(aid);
                 break;
         }
@@ -145,5 +153,12 @@ public class ProtocolModifierImpl implements ProtocolModifier {
     @Override
     public void setNfcChannel(Channel channel) {
         this.nfcChannel = channel;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals("state_finish")) {
+            semaphore.release();
+        }
     }
 }

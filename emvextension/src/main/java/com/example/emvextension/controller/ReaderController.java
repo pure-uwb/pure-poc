@@ -15,7 +15,9 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.concurrent.Semaphore;
 
-public class ReaderController extends PaymentController{
+import fr.devnied.bitlib.BytesUtils;
+
+public class ReaderController extends PaymentController {
 
     public ReaderController(Channel emvChannel, Channel boardChannel, ProtocolExecutor protocol, Semaphore s, ApplicationCryptogram AC) {
         super(emvChannel, boardChannel, protocol, s, AC);
@@ -24,15 +26,24 @@ public class ReaderController extends PaymentController{
 
     private Long start;
     private Long stop;
+    private StringBuilder protocolLog = new StringBuilder();
+
+    private void log(byte [] cmd, byte[] res){
+        protocolLog.append("[C-APDU] ").append(BytesUtils.bytesToStringNoSpace(cmd)).append("\n");
+        protocolLog.append("[R-APDU] ").append(BytesUtils.bytesToStringNoSpace(res)).append("\n");
+    }
+
+    public String getLog(){
+        return protocolLog.toString().trim();
+    }
     public void start(){
+            byte [] res;
             PropertyChangeListener[] listeners = paymentSession.getListeners();
             paymentSession = new Session(new ReaderStateMachine());
             for (PropertyChangeListener l :listeners) {
                 paymentSession.addPropertyChangeListener(l);
             }
             Log.i("TAG", "New tag detected");
-            byte [] selectAID = protocol.selectAID(paymentSession);
-            emvChannel.write(selectAID);
 
             byte [] hello = protocol.createReaderHello(paymentSession);
             emvChannel.write(hello);
@@ -42,8 +53,9 @@ public class ReaderController extends PaymentController{
                 throw new RuntimeException(e);
             }
             paymentSession.setAC(AC.getAC());
-            protocol.parseCardHello(emvChannel.read(), paymentSession);
-
+            res = emvChannel.read();
+            protocol.parseCardHello(res, paymentSession);
+            log(hello, res);
             // TODO: execute this in a separate thread
             start = System.nanoTime();
             byte [] key = protocol.programKey(paymentSession);
@@ -56,10 +68,12 @@ public class ReaderController extends PaymentController{
         protocol.parseTimingReport((byte[]) evt.getNewValue(), paymentSession);
         stop = System.nanoTime();
         Log.i("ReaderController", "Ranging time" +  ((float)(stop-start))/1000000 );
-        emvChannel.write(protocol.getSignatureCommand());
-        protocol.verifySignature(emvChannel.read(), paymentSession);
+        byte [] cmd = protocol.getSignatureCommand();
+        emvChannel.write(cmd);
+        byte [] res = emvChannel.read();
+        log(cmd, res);
+        protocol.verifySignature(res, paymentSession);
         protocol.finish(paymentSession);
-        Thread.currentThread().interrupt();
     }
 
     public boolean isSuccess(){
