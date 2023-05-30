@@ -43,17 +43,12 @@ public class CardController extends PaymentController{
                 throw new RuntimeException(e);
             }
             switch (command) {
-                case EXT_SELECT_AID:
-                    Log.i(TAG, "INS_SELECT");
+                case EXT_CL_HELLO:
                     PropertyChangeListener[] listeners = paymentSession.getListeners();
                     paymentSession = new Session(new CardStateMachine());
                     for (PropertyChangeListener l :listeners) {
                         paymentSession.addPropertyChangeListener(l);
                     }
-                    emvChannel.write(protocol.respSelectAid(paymentSession));
-                    break;
-
-                case EXT_CL_HELLO:
                     protocol.parseTerminalHello(cmd, paymentSession);
                     try {
                         s.acquire();
@@ -80,7 +75,7 @@ public class CardController extends PaymentController{
                 try{
                     boardChannel.write(key);
                 }catch (Exception e){
-                    Log.e("Controller", "UART FAIL");
+                    Log.e("Controller", "UART FAIL" + e);
                 }
             }
         }

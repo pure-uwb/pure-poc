@@ -48,13 +48,12 @@ public class ResponseResolver extends Thread {
             //write APDU command to socket
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
             out.write(cmd);
-            Log.i("ResponderResolver", "cmd sent to backend");
             //read APDU response
             DataInputStream in = new DataInputStream(socket.getInputStream());
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
             int length = in.read(buffer);
-            Log.i(this.getName(), "Reade " + length + "bytes");
+            Log.i(this.getName(), "Read " + length + "bytes");
             //process APDU response accordingly
             if (length >= 0 && length < 1024) {
                 baos.write(buffer, 0, length);

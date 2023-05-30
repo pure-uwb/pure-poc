@@ -18,7 +18,6 @@ public class CardStateMachine implements StateMachine {
 
     static {
         Map<State, State> steps_tmp=  new HashMap<State, State>();
-        steps_tmp.put(INIT, RECEIVE_HELLO);
         steps_tmp.put(RECEIVE_HELLO, SEND_HELLO);
         steps_tmp.put(SEND_HELLO, RANGE);
         steps_tmp.put(RANGE, AUTH);
@@ -28,7 +27,7 @@ public class CardStateMachine implements StateMachine {
     }
 
     public CardStateMachine() {
-        this.state = INIT;
+        this.state = RECEIVE_HELLO;
     }
 
     @Override

@@ -17,7 +17,6 @@ public class ReaderStateMachine implements StateMachine {
 
     static {
         Map<State, State> steps_tmp=  new HashMap<State, State>();
-        steps_tmp.put(INIT, SEND_HELLO);
         steps_tmp.put(SEND_HELLO, RECEIVE_HELLO);
         steps_tmp.put(RECEIVE_HELLO, RANGE);
         steps_tmp.put(RANGE, AUTH);
@@ -26,7 +25,7 @@ public class ReaderStateMachine implements StateMachine {
     }
 
     public ReaderStateMachine() {
-        this.state = INIT;
+        this.state = SEND_HELLO;
     }
 
     @Override
