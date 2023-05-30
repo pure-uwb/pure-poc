@@ -21,7 +21,6 @@ import android.nfc.cardemulation.CardEmulation;
 import android.nfc.tech.IsoDep;
 import android.nfc.tech.NfcA;
 import android.nfc.tech.NfcB;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
@@ -186,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             fabCard.show();
             fabSave.hide();
             fabPay.hide();
-            if (nfcAdapter != null){
+            if (nfcAdapter != null) {
                 nfcAdapter.disableReaderMode(this);
             }
         }
@@ -247,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         try {
             if (mockBackend) {
                 EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercad_to_selecta_2chf));
-                Thread cardBackend = CardBackend.getInstance( PORT, emvTrace);
+                Thread cardBackend = CardBackend.getInstance(PORT, emvTrace);
                 cardBackend.start();
                 Log.i("MainActivity", "Started mock card backend");
                 ip = getLocalIpAddress();
@@ -262,9 +261,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             } else {
                 //test connection with the remote POS emulator
                 //if successful, such thread will launch the card activity
-                if(checkRemoteConnection){
+                if (checkRemoteConnection) {
                     new ResponseResolver(null, ip, PORT, Util.PPSE_APDU_SELECT, true, this, null).start();
-                }else{
+                } else {
                     Log.i(this.getClass().getName(), "Start card emulator");
                     startCardEmulator();
                 }
@@ -277,6 +276,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     }
 
     public void startCardEmulator() {
+        Log.i("MainActivity", ip);
         EMVraceApduService.ip = ip;
         EMVraceApduService.port = PORT;
         runOnUiThread(() -> startActivity(new Intent(this, CardActivity.class)));
@@ -365,7 +365,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 Log.i("MainActivity", "Reader Backend create");
                 new ReaderBackend(getLocalIpAddress(), PORT_READER_TO_BACKEND, emvTrace).start();
             }
-            new RelayPosEmulator(this, tagComm,  modifier, readerSemaphore).start();
+            new RelayPosEmulator(this, tagComm, modifier, readerSemaphore).start();
         }
     }
 }
