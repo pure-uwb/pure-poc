@@ -108,17 +108,15 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         fabPay = findViewById(R.id.fabEuro);
         fabCard.setOnClickListener(view -> tryToStartCardEmulator());
         fabSave.setOnClickListener(view -> saveToStorage());
-        nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        nfcAdapter.enableReaderMode(this, this, FLAG_READER_NFC_A | FLAG_READER_SKIP_NDEF_CHECK, null);
         readerSemaphore = new Semaphore(0);
         fabPay.setOnClickListener(view -> {
             readerSemaphore.release();
         });
         applySettings();
-        launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> applySettings());
         if(!mockUart){
-           initializeUart();
+            initializeUart();
         }
+        launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> applySettings());
     }
 
     private void initializeUart(){
@@ -185,7 +183,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         //refresh GUI accordingly
         if (isPOS) {
             setTitle(R.string.pos_emulator);
-
+            nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+            nfcAdapter.enableReaderMode(this, this, FLAG_READER_NFC_A | FLAG_READER_SKIP_NDEF_CHECK, null);
             //layoutStatus.setVisibility(View.VISIBLE);
             tvIP.setText(getString(R.string.ip, getLocalIpAddress()));
             tvIP.setVisibility(View.VISIBLE);
@@ -241,7 +240,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     public void onPause() {
         //Disable reader mode when user leaves the activity
         super.onPause();
-        nfcAdapter.disableReaderMode(this);
+        if(nfcAdapter != null){
+            nfcAdapter.disableReaderMode(this);
+        }
     }
 
 //    @Override
@@ -272,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     public void tryToStartCardEmulator() {
         try {
             if (mockBackend) {
-                EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercad_to_selecta_2chf));
+                EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercard_gold_to_selecta));
                 Thread cardBackend = CardBackend.getInstance(PORT, emvTrace);
                 cardBackend.start();
                 Log.i("MainActivity", "Started mock card backend");
@@ -388,7 +389,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             ProtocolModifier modifier = Provider.getModifier(this, true);
             modifier.setNfcChannel(new NfcChannel(tagComm));
             if (mockBackend) {
-                EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercad_to_selecta_2chf));
+                EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercard_gold_to_selecta));
                 Log.i("MainActivity", "Reader Backend create");
                 new ReaderBackend(getLocalIpAddress(), PORT_READER_TO_BACKEND, emvTrace).start();
             }
