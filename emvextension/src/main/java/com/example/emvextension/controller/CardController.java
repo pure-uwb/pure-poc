@@ -49,6 +49,7 @@ public class CardController extends PaymentController{
                     for (PropertyChangeListener l :listeners) {
                         paymentSession.addPropertyChangeListener(l);
                     }
+                    protocol.init(paymentSession);
                     protocol.parseTerminalHello(cmd, paymentSession);
                     try {
                         s.acquire();

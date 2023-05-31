@@ -44,7 +44,7 @@ public class ReaderController extends PaymentController {
                 paymentSession.addPropertyChangeListener(l);
             }
             Log.i("TAG", "New tag detected");
-
+            protocol.init(paymentSession);
             byte [] hello = protocol.createReaderHello(paymentSession);
             emvChannel.write(hello);
             try {

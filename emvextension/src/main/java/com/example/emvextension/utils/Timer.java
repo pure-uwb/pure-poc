@@ -25,7 +25,7 @@ public class Timer implements PropertyChangeListener {
     public void propertyChange(PropertyChangeEvent evt) {
         Log.i(TAG, "evt: " + evt.getPropertyName());
         if(evt.getPropertyName().equals("state")){
-            timings.put((String)evt.getOldValue(), System.nanoTime());
+            timings.put((String)evt.getNewValue(), System.nanoTime());
             return;
         }
         if(evt.getPropertyName().equals("state_finish")){

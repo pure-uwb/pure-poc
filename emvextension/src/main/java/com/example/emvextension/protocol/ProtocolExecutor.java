@@ -344,6 +344,10 @@ public class ProtocolExecutor {
         session.step();
         return true;
     }
+
+    public void init(Session paymentSession) {
+        paymentSession.step();
+    }
 }
 
 
