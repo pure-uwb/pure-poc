@@ -1,6 +1,7 @@
 package ch.ethz.nfcrelay;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -52,6 +53,7 @@ public class CardActivity extends AppCompatActivity {
     }
 
     public void onApduServiceDeactivated(int reason) {
+        Log.i(this.getClass().getName(), "ApduServiceDeactivated");
         if (receivedGPO && transacting && reason == 0) {
             receivedGPO = transacting = false;
             runOnUiThread(() -> {

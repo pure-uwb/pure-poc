@@ -109,9 +109,8 @@ public class RelayPosEmulator extends Thread {
                     break;
                 }
             }
-
+            tagComm.close();
         } catch (Exception e) {
-//            semaphore.release();
             activity.showErrorOrWarning(e, true);
         }
     }
