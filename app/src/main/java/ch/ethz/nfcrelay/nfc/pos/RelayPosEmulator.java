@@ -92,9 +92,8 @@ public class RelayPosEmulator extends Thread {
                 // 1. extract AC
                 // 2. execute extension protocol
                 // 3. Send AC to the socket only if extension protocol succeeded
-                if (this.modifier != null){
-                    resp = modifier.parse(cmd, resp);
-                }
+                resp = modifier.parse(cmd, resp);
+
                 activity.appendToLog("[R-APDU] " + Util.bytesToHex(resp));
 
                 //write APDU response into the mSocket
@@ -106,10 +105,13 @@ public class RelayPosEmulator extends Thread {
                 out.close();
                 in.close();
                 socket.close();
+                if(modifier.isProtocolFinished()){
+                    break;
+                }
             }
 
         } catch (Exception e) {
-            semaphore.release();
+//            semaphore.release();
             activity.showErrorOrWarning(e, true);
         }
     }

@@ -46,6 +46,9 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
     private Channel nfcChannel;
 
     private Activity activity;
+
+    private boolean isProtocolFinished = false;
+
     private final String TAG = ProtocolModifierImpl.class.getName();
 
     public ProtocolModifierImpl(Activity activity, boolean isReader) {
@@ -135,9 +138,9 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                                 AC);
                         controller.registerSessionListener(new Timer(new CardStateMachine()));
                     }
-                    break;
                 }
-
+                isProtocolFinished = true;
+                break;
             case SELECT:
                 /*TODO: Add PDOL list so that the reader includes its capabilites regarding the
                  * Extention protocol
@@ -153,6 +156,11 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
     @Override
     public void setNfcChannel(Channel channel) {
         this.nfcChannel = channel;
+    }
+
+    @Override
+    public boolean isProtocolFinished() {
+        return isProtocolFinished;
     }
 
     @Override

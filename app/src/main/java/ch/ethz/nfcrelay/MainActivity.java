@@ -193,12 +193,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
             fabCard.hide();
             fabSave.show();
-            try {
-                Log.i("MainActivity", "Start Socket on" + PORT_READER_TO_BACKEND);
-                serverSocket = new ServerSocket(PORT_READER_TO_BACKEND);
-            } catch (IOException e) {
-                showErrorOrWarning(e, false);
-            }
 
         } else {
             setTitle(R.string.card_emulator);
@@ -223,16 +217,18 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         super.onResume();
 
         if (isPOS) {
-//            try {
-//                if (nfcAdapter != null)
-//                    nfcAdapter.enableReaderMode(this, this, FLAG_READER_NFC_A | FLAG_READER_SKIP_NDEF_CHECK, null);
-//            } catch (Exception e) {
-//                showErrorOrWarning(e, true);
-//            }
+            try {
+                Log.i("MainActivity", "Start Socket on" + PORT_READER_TO_BACKEND);
+                serverSocket = new ServerSocket(PORT_READER_TO_BACKEND);
+            } catch (IOException e) {
+                showErrorOrWarning(e, false);
+            }
 
+            nfcAdapter.enableReaderMode(this, this, FLAG_READER_NFC_A | FLAG_READER_SKIP_NDEF_CHECK, null);
             if (tagComm != null && tagComm.isConnected())
                 updateStatus(getString(R.string.card_connected), true);
             else updateStatus(getString(R.string.waiting_for_card), false);
+
         }
     }
 
@@ -240,35 +236,18 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     public void onPause() {
         //Disable reader mode when user leaves the activity
         super.onPause();
-        if(nfcAdapter != null){
-            nfcAdapter.disableReaderMode(this);
+        if (isPOS) {
+            if(nfcAdapter != null){
+                nfcAdapter.disableReaderMode(this);
+            }
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
-//    @Override
-//    protected void onNewIntent(Intent intent) {
-//        //A card is detected
-//        super.onNewIntent(intent);
-//
-//        if (isPOS) {
-//            Log.i("MainActivity", "NEW INTENT");
-//            tagComm = IsoDep.get(intent.getParcelableExtra(NfcAdapter.EXTRA_TAG));
-//            updateStatus(getString(R.string.card_connected), true);
-//
-//            try {
-//                serverSocket = new ServerSocket(PORT);
-//            } catch (IOException e) {
-//                showErrorOrWarning(e, false);
-//            }
-//            ProtocolModifier modifier = new ProtocolModifierImpl(this,true);
-//            modifier.setNfcChannel(new NfcChannel(tagComm));
-//            new RelayPosEmulator(this, tagComm,  modifier).start();
-//            if (mockBackend) {
-//                EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercad_to_selecta_2chf));
-//                new ReaderBackend(ip, PORT_READER_TO_BACKEND, emvTrace).start();
-//            }
-//        }
-//    }
 
     public void tryToStartCardEmulator() {
         try {
@@ -381,7 +360,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
     @Override
     public void onTagDiscovered(Tag tag) {
-
+        runOnUiThread(() -> tvLog.setText(""));
         if (isPOS) {
             Log.i("MainActivity", "New Tag");
             tagComm = IsoDep.get(tag);
