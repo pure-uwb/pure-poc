@@ -30,7 +30,6 @@ public class ReaderBackend extends Thread {
     public void run() {
         try {
             while (emvTrace.commandsHasNext()) {
-                Log.i(TAG, "New command");
                 Socket socket = new Socket(ip, port);
                 //waiting for connection with remote card emulator
                 byte[] cmd = emvTrace.getCommand();
