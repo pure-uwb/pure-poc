@@ -18,9 +18,16 @@ import java.util.concurrent.Semaphore;
 import fr.devnied.bitlib.BytesUtils;
 
 public class ReaderController extends PaymentController {
+    private static ReaderController controller = null;
+    public static ReaderController getInstance(Channel emvChannel, Channel boardChannel, ProtocolExecutor protocol){
+        if(controller == null){
+            controller = new ReaderController(emvChannel, boardChannel, protocol);
+        }
+        return controller;
+    }
 
-    public ReaderController(Channel emvChannel, Channel boardChannel, ProtocolExecutor protocol, Semaphore s, ApplicationCryptogram AC) {
-        super(emvChannel, boardChannel, protocol, s, AC);
+    private ReaderController(Channel emvChannel, Channel boardChannel, ProtocolExecutor protocol) {
+        super(emvChannel, boardChannel, protocol);
         boardChannel.addPropertyChangeListener(this::handleBoardEvent);
     }
 
@@ -43,7 +50,6 @@ public class ReaderController extends PaymentController {
             for (PropertyChangeListener l :listeners) {
                 paymentSession.addPropertyChangeListener(l);
             }
-            Log.i("TAG", "New tag detected");
             protocol.init(paymentSession);
             byte [] hello = protocol.createReaderHello(paymentSession);
             emvChannel.write(hello);

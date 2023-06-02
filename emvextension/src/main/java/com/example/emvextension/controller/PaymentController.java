@@ -18,15 +18,19 @@ public abstract class PaymentController{
     protected Semaphore s;
     protected ApplicationCryptogram AC;
 
-    public PaymentController(Channel paymentChannel, Channel boardChannel, ProtocolExecutor protocol,
-        Semaphore s, ApplicationCryptogram AC){
+    public PaymentController(Channel paymentChannel, Channel boardChannel, ProtocolExecutor protocol){
         this.emvChannel = paymentChannel;
         this.boardChannel = boardChannel;
         this.protocol = protocol;
+
+    }
+
+    public void initialize(Semaphore s, ApplicationCryptogram AC, Session session){
         this.s = s;
         this.AC = AC;
-        paymentSession = new Session(new CardStateMachine());
+        paymentSession = session;
     }
+
     public void registerSessionListener(PropertyChangeListener listener){
         paymentSession.addPropertyChangeListener(listener);
     }

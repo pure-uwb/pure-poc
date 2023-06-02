@@ -10,6 +10,7 @@ import com.example.emvextension.Apdu.ApduWrapperReader;
 import com.example.emvextension.channel.Channel;
 import com.example.emvextension.channel.UartChannelMock;
 import com.example.emvextension.controller.CardController;
+import com.example.emvextension.controller.PaymentController;
 import com.example.emvextension.controller.ReaderController;
 import com.example.emvextension.jobs.ReaderControllerJob;
 import com.example.emvextension.protocol.ApplicationCryptogram;
@@ -18,6 +19,7 @@ import com.example.emvextension.jobs.EmvParserJob;
 import com.example.emvextension.protocol.ProtocolExecutor;
 import com.example.emvextension.protocol.ProtocolModifier;
 import com.example.emvextension.protocol.ReaderStateMachine;
+import com.example.emvextension.protocol.Session;
 import com.example.emvextension.utils.Timer;
 import com.github.devnied.emvnfccard.enums.CommandEnum;
 import com.github.devnied.emvnfccard.iso7816emv.EmvTags;
@@ -69,6 +71,7 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
             cmdEnum[3] = (byte) 0x00;
         }
         CommandEnum command = getCommandEnum(cmdEnum);
+        CardController cardController = null;
         switch (command) {
             case READ_RECORD:
                 parser.extractCardHolderName(res);
@@ -111,10 +114,10 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                     new EmvParserJob(parser.getCard(), s, res, AC, activity, com.github.devnied.emvnfccard.R.raw.cardschemes_public_root_ca_keys).start();
                     // Controller MUST wait on the semaphore s before signing
                     if (isReader) {
-                        ReaderController controller = new ReaderController(nfcChannel,
+                        ReaderController controller = ReaderController.getInstance(nfcChannel,
                                 Provider.getUartChannel(activity),
-                                new ProtocolExecutor(new ApduWrapperReader(), activity),
-                                s, AC);
+                                new ProtocolExecutor(new ApduWrapperReader(), activity));
+                        controller.initialize(s, AC, new Session(new ReaderStateMachine()));
                         controller.registerSessionListener(new Timer(new ReaderStateMachine()));
                         controller.registerSessionListener(this);
                         Thread t = new ReaderControllerJob(controller);
@@ -131,12 +134,11 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                         }
 
                     } else {
-                        CardController controller = new CardController(nfcChannel,
+                         cardController = CardController.getInstance(nfcChannel,
                                 Provider.getUartChannel(activity),
-                                new ProtocolExecutor(new ApduWrapperCard(), activity),
-                                s,
-                                AC);
-                        controller.registerSessionListener(new Timer(new CardStateMachine()));
+                                 new ProtocolExecutor(new ApduWrapperCard(), activity));
+                         cardController.initialize(s, AC, new Session(new CardStateMachine()));
+                         cardController.registerSessionListener(new Timer(new CardStateMachine()));
                     }
                 }
                 isProtocolFinished = true;

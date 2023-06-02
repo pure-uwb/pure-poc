@@ -5,6 +5,7 @@ import static android.nfc.NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK;
 import static ch.ethz.nfcrelay.nfc.BuildSettings.checkRemoteConnection;
 import static ch.ethz.nfcrelay.nfc.BuildSettings.mockBackend;
 import static ch.ethz.nfcrelay.nfc.BuildSettings.mockUart;
+import static ch.ethz.nfcrelay.nfc.BuildSettings.transparentRelay;
 
 import android.app.PendingIntent;
 import android.content.ClipData;
@@ -39,6 +40,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.CheckBoxPreference;
 import androidx.preference.PreferenceManager;
 
 import com.example.emvextension.BuildConfig;
@@ -80,6 +82,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     private FloatingActionButton fabCard;
     private FloatingActionButton fabSave;
 
+    private CheckBoxPreference swUart;
+    private CheckBoxPreference swBackend;
+    private CheckBoxPreference swTransparent;
     private ServerSocket serverSocket;
     private String ip;
 
@@ -179,7 +184,10 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         isPOS = "pos".equals(prefs.getString("emulator", "pos"));//default emulator is POS
         ip = prefs.getString("ip", "0.0.0.0");
-
+        mockUart = prefs.getBoolean("mock_uart", true);
+        mockBackend = prefs.getBoolean("mock_backend", false);
+        transparentRelay = prefs.getBoolean("transparent_relay", false);
+        Log.i("MainActivity"," Settings: "  + mockUart + mockBackend + transparentRelay);
         //refresh GUI accordingly
         if (isPOS) {
             setTitle(R.string.pos_emulator);

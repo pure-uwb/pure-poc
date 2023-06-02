@@ -2,7 +2,8 @@ package com.example.emvextension.controller;
 
 import static com.example.emvextension.Apdu.HexUtils.bin2hex;
 import static com.example.emvextension.Apdu.UtilsAPDU.INS_WRITE;
-import static com.example.emvextension.channel.CardNfcChannel.EVT_CMD;
+
+import static com.example.emvextension.utils.Constants.EVT_CMD;
 import static com.github.devnied.emvnfccard.utils.CommandApdu.getCommandEnum;
 
 import android.util.Log;
@@ -23,8 +24,17 @@ import at.zweng.emv.utils.EmvParsingException;
 public class CardController extends PaymentController{
     private final String TAG = "CardController";
 
-    public CardController(Channel emvChannel, Channel boardChannel, ProtocolExecutor protocol, Semaphore s, ApplicationCryptogram AC) {
-        super(emvChannel, boardChannel, protocol, s, AC);
+    private static CardController controller = null;
+    private static boolean initialized = false;
+    public static CardController getInstance(Channel emvChannel, Channel boardChannel, ProtocolExecutor protocol){
+        if(controller == null){
+            controller = new CardController(emvChannel, boardChannel, protocol);
+        }
+        return controller;
+    }
+
+    private CardController(Channel emvChannel, Channel boardChannel, ProtocolExecutor protocol) {
+        super(emvChannel, boardChannel, protocol);
         emvChannel.addPropertyChangeListener(this::handleEmvEvent);
         boardChannel.addPropertyChangeListener(this::handleBoardEvent);
     }
@@ -51,11 +61,14 @@ public class CardController extends PaymentController{
                     }
                     protocol.init(paymentSession);
                     protocol.parseTerminalHello(cmd, paymentSession);
+                    Log.i("CardController", "permits: " + s.availablePermits());
+                    Log.i("CardController", "Semaphore hashcode: " + s.toString());
                     try {
                         s.acquire();
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
+                    Log.i("CardController", "After semaphore");
                     paymentSession.setAC(AC.getAC());
                     emvChannel.write(protocol.createCardHello(paymentSession));
                     break;
