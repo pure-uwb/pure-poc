@@ -4,6 +4,8 @@ import android.nfc.cardemulation.HostApduService;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.util.Arrays;
+
 import ch.ethz.nfcrelay.CardActivity;
 import ch.ethz.nfcrelay.nfc.Util;
 import ch.ethz.nfcrelay.nfc.card.ResponseResolver;
@@ -17,10 +19,14 @@ public class EMVraceApduService extends HostApduService {
 
     @Override
     public byte[] processCommandApdu(byte[] commandApdu, Bundle extras) {
-        if (cardActivity != null)
-            cardActivity.onApduCommandReceived(commandApdu);
-        Log.i("HCE", "RECECEIVED PACKAGE");
-        dispatcher.dispatch(this, ip, port, commandApdu, false, null);
+        try{
+            if (cardActivity != null)
+                cardActivity.onApduCommandReceived(commandApdu);
+            dispatcher.dispatch(this, ip, port, commandApdu, false, null);
+        }catch (Exception e){
+            Log.e(this.getClass().getName(), e.toString());
+            Log.e(this.getClass().getName(), Arrays.toString(e.getStackTrace()));
+        }
         return Util.EMPTY_APDU_RESPONSE;//tell the HCE to wait until the response has been resolved
     }
 
