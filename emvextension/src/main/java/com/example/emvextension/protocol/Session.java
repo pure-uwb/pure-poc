@@ -94,10 +94,10 @@ public class Session  implements PropertyChangeObservable {
         this.pollTx = pollTx;
         this.respRx = respRx;
         this.respTx = respTx;
-        Log.i("Session", pollRx.toString());
-        Log.i("Session", pollTx.toString());
-        Log.i("Session", respRx.toString());
-        Log.i("Session", respTx.toString());
+        Log.d("Session", pollRx.toString());
+        Log.d("Session", pollTx.toString());
+        Log.d("Session", respRx.toString());
+        Log.d("Session", respTx.toString());
 
     }
 

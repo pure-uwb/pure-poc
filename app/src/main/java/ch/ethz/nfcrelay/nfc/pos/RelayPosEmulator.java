@@ -60,6 +60,7 @@ public class RelayPosEmulator extends Thread {
             ServerSocket serverSocket = activity.getServerSocket();
             Log.i(this.getName(), "Wait for merchant to start a transaction");
             semaphore.acquire();
+            Log.i(this.getName(), "Transaction started");
             while (true) {
                 //waiting for connection with remote card emulator
                 Socket socket = serverSocket.accept();
@@ -69,7 +70,6 @@ public class RelayPosEmulator extends Thread {
                 byte[] buffer = new byte[1024];
                 baos.write(buffer, 0, in.read(buffer));
                 byte[] cmd = baos.toByteArray();
-
                 //refresh GUI with command
                 activity.appendToLog("[C-APDU] " + Util.bytesToHex(cmd));
 
@@ -106,10 +106,11 @@ public class RelayPosEmulator extends Thread {
                 in.close();
                 socket.close();
                 if(modifier.isProtocolFinished()){
+                    Log.i("RelayPosEmulator", "Protocol finished");
                     break;
                 }
             }
-            tagComm.close();
+//            tagComm.close();
         } catch (Exception e) {
             activity.showErrorOrWarning(e, true);
         }

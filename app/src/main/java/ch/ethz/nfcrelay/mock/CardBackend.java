@@ -42,7 +42,6 @@ public class CardBackend extends Thread {
             while (true) {
                 //waiting for connection with remote card emulator
                 Socket socket = serverSocket.accept();
-                Log.i(TAG, "Received connection");
 
                 //read APDU command from socket
                 DataInputStream in = new DataInputStream(socket.getInputStream());

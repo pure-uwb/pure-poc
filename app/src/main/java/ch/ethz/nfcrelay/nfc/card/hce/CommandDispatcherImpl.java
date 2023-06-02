@@ -1,15 +1,20 @@
-package ch.ethz.nfcrelay.nfc.card.hce;
+ package ch.ethz.nfcrelay.nfc.card.hce;
 
 import static com.example.emvextension.utils.Constants.EVT_CMD;
 import static com.github.devnied.emvnfccard.enums.CommandEnum.isExtensionCommand;
 import static com.github.devnied.emvnfccard.utils.CommandApdu.getCommandEnum;
 
+import android.util.Log;
+
 import com.example.emvextension.channel.Channel;
 import com.example.emvextension.protocol.ProtocolModifier;
 import com.github.devnied.emvnfccard.enums.CommandEnum;
 
+import java.util.Arrays;
+
 import at.zweng.emv.utils.EmvParsingException;
 import ch.ethz.nfcrelay.MainActivity;
+import ch.ethz.nfcrelay.nfc.Util;
 import ch.ethz.nfcrelay.nfc.card.ResponseResolver;
 
 public class CommandDispatcherImpl extends Channel implements ch.ethz.nfcrelay.nfc.card.hce.CommandDispatcher{
@@ -25,10 +30,12 @@ public class CommandDispatcherImpl extends Channel implements ch.ethz.nfcrelay.n
     public void dispatch(EMVraceApduService hostApduService, String ip, int port, byte[] cmd, boolean isPPSECmd, MainActivity activity) {
         try {
             if (isExtensionCommand(cmd)){
+                Log.i("Dispatcher", "Extension command: " + Util.bytesToHex(cmd));
                 this.cmd = cmd;
                 this.hostApduService = hostApduService;
                 this.notifyAllListeners(EVT_CMD, null, null);
             }else{
+                Log.i("Dispatcher", "EMV command: " + Util.bytesToHex(cmd));
                 ResponseResolver responseResolver = new ResponseResolver(hostApduService, ip, port,
                         cmd, false, null, modifier);
 

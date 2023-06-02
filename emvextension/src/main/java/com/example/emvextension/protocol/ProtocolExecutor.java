@@ -249,7 +249,6 @@ public class ProtocolExecutor {
             Log.e(TAG, "This function should not be called in state: " + stateToString(paymentSession.getState()));
             return;
         }
-        Log.i(TAG, "State parsingTiming:" + stateToString(paymentSession.getState()));
         int pollTxOffset = 0;
         int respRxOffset = 4;
         int pollRxOffset = 8;
