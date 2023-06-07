@@ -23,7 +23,7 @@ public class Provider {
     public static Channel getUartChannel(Activity activity){
         if(mockUart)
             return new UartChannelMock();
-        return new UartChannel(activity);
+        return UartChannel.getChannel(activity);
     }
 
 }

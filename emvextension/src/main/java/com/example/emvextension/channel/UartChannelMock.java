@@ -22,7 +22,7 @@ public class UartChannelMock extends Channel{
         }
 
         int success = rand.nextInt(2);
-        success = 1;
+        success = 0;
         if (success == 1){
             notifyAllListeners(READ_DATA, null,   new byte[] {25, -85, 30, 112, -66, -25, 127, 91, 5, -92, -81, -76, 1, 114, 44, -71, '0', '0', '.', '2', '5'});
         }else{
