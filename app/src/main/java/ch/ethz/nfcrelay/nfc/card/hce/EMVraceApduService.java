@@ -20,6 +20,7 @@ public class EMVraceApduService extends HostApduService {
     @Override
     public byte[] processCommandApdu(byte[] commandApdu, Bundle extras) {
         try{
+            Log.i(this.getClass().getName(), "Received command " + Util.bytesToHex(commandApdu));
             if (cardActivity != null)
                 cardActivity.onApduCommandReceived(commandApdu);
             dispatcher.dispatch(this, ip, port, commandApdu, false, null);

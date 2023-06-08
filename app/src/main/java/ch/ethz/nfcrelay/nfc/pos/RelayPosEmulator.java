@@ -58,12 +58,18 @@ public class RelayPosEmulator extends Thread {
 
             //execute transaction
             ServerSocket serverSocket = activity.getServerSocket();
-            Log.i(this.getName(), "Wait for merchant to start a transaction");
-            semaphore.acquire();
+            Log.i(this.getName(), "Wait for merchant to start a transaction on thread " + Thread.currentThread());
+//            try{
+//                semaphore.acquire();
+//            }catch(InterruptedException e){
+//                Log.w(this.getName(), "Tag was lost, thread killed");
+//                return;
+//            }
             Log.i(this.getName(), "Transaction started");
             while (true) {
                 //waiting for connection with remote card emulator
-                Socket socket = serverSocket.accept();
+                Socket socket;
+                socket = serverSocket.accept();
                 //read APDU command from socket
                 DataInputStream in = new DataInputStream(socket.getInputStream());
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -71,6 +77,7 @@ public class RelayPosEmulator extends Thread {
                 baos.write(buffer, 0, in.read(buffer));
                 byte[] cmd = baos.toByteArray();
                 //refresh GUI with command
+                Log.i(this.getName(), "[C-APDU] " + Util.bytesToHex(cmd));
                 activity.appendToLog("[C-APDU] " + Util.bytesToHex(cmd));
 
                 //send APDU command to the card and receive APDU response
@@ -83,7 +90,9 @@ public class RelayPosEmulator extends Thread {
                         Thread.sleep(200);
                     }
                  */
-
+                if(tagComm == null || !tagComm.isConnected()){
+                    return;
+                }
                 byte[] resp = tagComm.transceive(cmd);
 
                 //refresh GUI with response
@@ -95,6 +104,7 @@ public class RelayPosEmulator extends Thread {
                 resp = modifier.parse(cmd, resp);
 
                 activity.appendToLog("[R-APDU] " + Util.bytesToHex(resp));
+                Log.i(this.getName(), "[R-APDU] " + Util.bytesToHex(resp));
 
                 //write APDU response into the mSocket
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());

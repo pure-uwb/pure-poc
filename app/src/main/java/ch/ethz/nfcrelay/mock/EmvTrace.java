@@ -24,13 +24,11 @@ public class EmvTrace {
         try {
             String line;
             while ((line = reader.readLine()) != null) {
-//            for (String line : reader.lines().iterator()){
                 String[] tokens = line.split("]");
                 if (tokens.length != 2){
                     break;
                 }
                 String TAG = this.getClass().toString();
-                Log.i(TAG, "|" + tokens[0] + "|" + tokens[1]);
 
                 if (tokens[0].contains("C-APDU")) {
                     commands.add(Util.hexToBytes(tokens[1].strip()));

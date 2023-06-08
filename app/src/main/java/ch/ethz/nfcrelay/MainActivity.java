@@ -58,6 +58,7 @@ import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -97,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     private ActivityResultLauncher<Intent> launcher;
     private CharSequence logBackup = "";
     private FloatingActionButton fabPay;
-
+    private List<Thread> threadList = new LinkedList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -228,6 +229,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             try {
                 Log.i("MainActivity", "Start Socket on" + PORT_READER_TO_BACKEND);
                 serverSocket = new ServerSocket(PORT_READER_TO_BACKEND);
+//                serverSocket.setSoTimeout(0);
             } catch (IOException e) {
                 showErrorOrWarning(e, false);
             }
@@ -369,18 +371,36 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     @Override
     public void onTagDiscovered(Tag tag) {
         runOnUiThread(() -> tvLog.setText(""));
+        Thread t;
         if (isPOS) {
+            try {
+                serverSocket.close();
+                serverSocket = new ServerSocket(PORT_READER_TO_BACKEND);
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             Log.i("MainActivity", "New Tag");
             tagComm = IsoDep.get(tag);
             updateStatus(getString(R.string.card_connected), true);
             ProtocolModifier modifier = Provider.getModifier(this, true);
             modifier.setNfcChannel(new NfcChannel(tagComm));
+            List<Thread> newThreadList = new LinkedList<>();
+            for (Thread thread : threadList) {
+                Log.i("MainActivity", "Interrupt thread:" + thread);
+                thread.interrupt();
+            }
             if (mockBackend) {
                 EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercard_gold_to_selecta));
                 Log.i("MainActivity", "Reader Backend create");
-                new ReaderBackend(getLocalIpAddress(), PORT_READER_TO_BACKEND, emvTrace).start();
+                t  = new ReaderBackend(getLocalIpAddress(), PORT_READER_TO_BACKEND, emvTrace, readerSemaphore);
+                t.start();
+                newThreadList.add(t);
             }
-            new RelayPosEmulator(this, tagComm, modifier, readerSemaphore).start();
+            t = new RelayPosEmulator(this, tagComm, modifier, readerSemaphore);
+            newThreadList.add(t);
+            t.start();
+            threadList = newThreadList;
         }
     }
 }

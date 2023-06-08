@@ -10,6 +10,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.Semaphore;
 
 import ch.ethz.nfcrelay.nfc.Util;
 
@@ -18,25 +19,33 @@ public class ReaderBackend extends Thread {
     String ip;
     int port;
     EmvTrace emvTrace;
+    private Semaphore s;
     private final String TAG = this.getClass().toString();
 
-    public ReaderBackend(String ip, int port, EmvTrace emvTrace) {
+    public ReaderBackend(String ip, int port, EmvTrace emvTrace, Semaphore s) {
         this.ip = ip;
         this.port = port;
         this.emvTrace = emvTrace;
+        this.s = s;
     }
 
     @Override
     public void run() {
         try {
+            s.acquire();
+            Log.i(TAG, "On thread" + Thread.currentThread());
             while (emvTrace.commandsHasNext()) {
+                if (Thread.interrupted()) {
+                    // We've been interrupted: no more crunching.
+                    return;
+                }
                 Socket socket = new Socket(ip, port);
                 //waiting for connection with remote card emulator
                 byte[] cmd = emvTrace.getCommand();
                 //write APDU command to socket
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                 out.write(cmd);
-
+                Log.i(TAG, "Sent CMD: " + bytesToHex(cmd) + "by thread" + Thread.currentThread());
                 //read APDU response
                 DataInputStream in = new DataInputStream(socket.getInputStream());
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -51,8 +60,6 @@ public class ReaderBackend extends Thread {
                 in.close();
                 out.close();
                 socket.close();
-                Log.i(TAG, "Sent CMD: " + bytesToHex(cmd));
-
             }
         } catch (Exception e) {
             Log.e(TAG, "Error: " + e);

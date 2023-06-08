@@ -41,9 +41,14 @@ public class UartChannel extends Channel implements SerialInputOutputManager.Lis
             }
         }
     };
-
-
-    public UartChannel(Activity activity) {
+    private static UartChannel channel = null;
+    public static UartChannel getChannel(Activity activity){
+        if( channel == null){
+            channel = new UartChannel(activity);
+        }
+        return channel;
+    }
+    private UartChannel(Activity activity) {
         this.activity = activity;
         activity.registerReceiver(broadcastReceiver, new IntentFilter(INTENT_ACTION_GRANT_USB));
         messageBuf = new byte[messageSize];

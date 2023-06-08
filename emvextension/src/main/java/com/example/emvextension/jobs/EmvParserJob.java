@@ -70,6 +70,7 @@ public class EmvParserJob extends Thread {
             RootCaManager rootCaManager = new RootCaManager(activity, ca_res_id);
 
             // Parse the card
+            Log.i(this.getName(), "AID: " + card.getAid().substring(0, 10));
             final RootCa rootCaForCardScheme = rootCaManager.getCaForRid(card.getAid().substring(0, 10));
             final CaPublicKey caKey = rootCaForCardScheme.getCaPublicKeyWithIndex(card.getCaPublicKeyIndex());
             EmvKeyReader keyReader = new EmvKeyReader();
