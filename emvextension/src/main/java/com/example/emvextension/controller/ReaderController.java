@@ -40,6 +40,12 @@ public class ReaderController extends PaymentController {
         protocolLog.append("[R-APDU] ").append(BytesUtils.bytesToStringNoSpace(res)).append("\n");
     }
 
+    @Override
+    public void initialize(Semaphore s, ApplicationCryptogram AC, Session session){
+        super.initialize(s, AC, session);
+        protocolLog = new StringBuilder();
+    }
+
     public String getLog(){
         return protocolLog.toString().trim();
     }

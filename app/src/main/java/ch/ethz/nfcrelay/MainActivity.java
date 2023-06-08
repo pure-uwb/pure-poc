@@ -2,7 +2,6 @@ package ch.ethz.nfcrelay;
 
 import static android.nfc.NfcAdapter.FLAG_READER_NFC_A;
 import static android.nfc.NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK;
-import static ch.ethz.nfcrelay.nfc.BuildSettings.checkRemoteConnection;
 import static ch.ethz.nfcrelay.nfc.BuildSettings.mockBackend;
 import static ch.ethz.nfcrelay.nfc.BuildSettings.mockUart;
 import static ch.ethz.nfcrelay.nfc.BuildSettings.transparentRelay;
@@ -122,6 +121,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         if(!mockUart){
             initializeUart();
         }
+        if(!isPOS)
+            tryToStartCardEmulator();
         launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> applySettings());
     }
 
@@ -276,17 +277,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
                         .show();
             } else {
-                //test connection with the remote POS emulator
-                //if successful, such thread will launch the card activity
-                if (checkRemoteConnection) {
-                    new ResponseResolver(null, ip, PORT, Util.PPSE_APDU_SELECT, true, this, null).start();
-                } else {
-                    Log.i(this.getClass().getName(), "Start card emulator");
-                    startCardEmulator();
-                }
+                Log.i(this.getClass().getName(), "Start card emulator");
+                startCardEmulator();
             }
-            //new ResponseResolver(null, ip, PORT,
-            //        Util.PPSE_APDU_SELECT, true, this).start();
         } catch (Exception e) {
             showErrorOrWarning(e, true);
         }
