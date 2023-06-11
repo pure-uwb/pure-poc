@@ -27,6 +27,8 @@ public class Session  implements PropertyChangeObservable {
     Long pollTx;
     Long respRx;
     Long respTx;
+    Long finalTx;
+
     private float distance;
     private byte[] tagKey;
     private boolean signVerif;
@@ -89,16 +91,17 @@ public class Session  implements PropertyChangeObservable {
         notifyAllListeners("state", oldState, stateMachine.getStateString());
        }
 
-    public void setTimings(Long pollRx, Long pollTx, Long respRx, Long respTx) {
+    public void setTimings(Long pollRx, Long pollTx, Long respRx, Long respTx, Long finalTx) {
         this.pollRx = pollRx;
         this.pollTx = pollTx;
         this.respRx = respRx;
         this.respTx = respTx;
-        Log.d("Session", pollRx.toString());
-        Log.d("Session", pollTx.toString());
-        Log.d("Session", respRx.toString());
-        Log.d("Session", respTx.toString());
-
+        this.finalTx = finalTx;
+        Log.i("Session", pollRx.toString());
+        Log.i("Session", pollTx.toString());
+        Log.i("Session", respRx.toString());
+        Log.i("Session", respTx.toString());
+        Log.i("Session", finalTx.toString());
     }
 
     public void setDistance(Float distance) {
@@ -144,8 +147,9 @@ public class Session  implements PropertyChangeObservable {
             outputStream.write(this.localKey.getPublic().getEncoded());
             outputStream.write(this.remoteKey.getEncoded());
             if( respTx != null & pollRx != null){
-                outputStream.write(longToBytes(respTx));
-                outputStream.write(longToBytes(pollRx));
+                outputStream.write(longToBytes(pollTx));
+                outputStream.write(longToBytes(respRx));
+                outputStream.write(longToBytes(finalTx));
             }
             outputStream.write(AC);
         } catch (IOException e) {
@@ -162,8 +166,9 @@ public class Session  implements PropertyChangeObservable {
             outputStream.write(this.localKey.getPublic().getEncoded());
             if( respTx != null & pollRx != null & stateMachine.getState() == StateMachine.State.AUTH){
                 //TODO: modify state once new states are added
-                outputStream.write(longToBytes(respTx));
-                outputStream.write(longToBytes(pollRx));
+                outputStream.write(longToBytes(pollTx));
+                outputStream.write(longToBytes(respRx));
+                outputStream.write(longToBytes(finalTx));
             }
             outputStream.write(AC);
         } catch (IOException e) {

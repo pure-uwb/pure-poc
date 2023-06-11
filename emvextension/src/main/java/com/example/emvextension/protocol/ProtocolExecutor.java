@@ -253,12 +253,14 @@ public class ProtocolExecutor {
         int respRxOffset = 4;
         int pollRxOffset = 8;
         int respTxOffset = 12;
-        int distOffset = 16;
+        int finalTxOffset = 16;
+        int distOffset = 20;
 
         long pollRx;
         long pollTx;
         long respRx;
         long respTx;
+        long finalTx;
         float distance;
 
         Log.i(TAG, bin2hex(timingsBytes));
@@ -268,7 +270,8 @@ public class ProtocolExecutor {
             pollTx = byteArrayToUInt32(timingsBytes, pollTxOffset);
             respRx = byteArrayToUInt32(timingsBytes, respRxOffset);
             respTx = byteArrayToUInt32(timingsBytes, respTxOffset);
-            paymentSession.setTimings(pollRx, pollTx, respRx, respTx);
+            finalTx = byteArrayToUInt32(timingsBytes, finalTxOffset);
+            paymentSession.setTimings(pollRx, pollTx, respRx, respTx, finalTx);
             distance = Float.parseFloat(new String(Arrays.copyOfRange(timingsBytes, distOffset, distOffset + 5), StandardCharsets.UTF_8));
             paymentSession.setDistance(distance);
             Log.i(TAG, "Distance: " + paymentSession.getDistance());

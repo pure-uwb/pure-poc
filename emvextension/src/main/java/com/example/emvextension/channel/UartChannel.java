@@ -28,7 +28,7 @@ public class UartChannel extends Channel implements SerialInputOutputManager.Lis
     private Activity activity;
     private Boolean connect;
     private UsbSerialPort port;
-    private int messageSize = 21;
+    private int messageSize = 25;
     private int received = 0;
     private byte[] messageBuf;
     private static final String INTENT_ACTION_GRANT_USB = BuildConfig.LIBRARY_PACKAGE_NAME + ".GRANT_USB";
