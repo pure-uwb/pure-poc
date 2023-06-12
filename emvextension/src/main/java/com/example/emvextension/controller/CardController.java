@@ -26,6 +26,7 @@ public class CardController extends PaymentController{
 
     private static CardController controller = null;
     private static boolean initialized = false;
+    private Semaphore uwbSemaphore;
     public static CardController getInstance(Channel emvChannel, Channel boardChannel, ProtocolExecutor protocol){
         if(controller == null){
             controller = new CardController(emvChannel, boardChannel, protocol);
@@ -61,36 +62,44 @@ public class CardController extends PaymentController{
                     }
                     protocol.init(paymentSession);
                     protocol.parseTerminalHello(cmd, paymentSession);
+                    emvChannel.write(protocol.createCardHello(paymentSession));
                     Log.i("CardController", "permits: " + s.availablePermits());
                     Log.i("CardController", "Semaphore hashcode: " + s.toString());
+                    uwbSemaphore = new Semaphore(0);
+                    start = System.nanoTime();
+                    byte [] key = protocol.programKey(paymentSession);
+                    Log.i("CardController", "Write key to board: " + bin2hex(key));
+                    //key = new byte[]{(byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A',
+                    //                (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A'};
+                    try{
+                        boardChannel.write(key);
+                    }catch (Exception e){
+                        Log.e("Controller", "UART FAIL" + e);
+                    }
+                    break;
+                case EXT_SIGN:
                     try {
+                        Long start, stop;
+                        start = System.nanoTime();
                         s.acquire();
+                        stop = System.nanoTime();
+                        Log.i("Semaphores", "parserSemaphore" +  ((float)(stop-start))/1000000 );
+                        start = System.nanoTime();
+                        uwbSemaphore.acquire();
+                        stop = System.nanoTime();
+                        Log.i("Semaphores", "uwbSemaphore" +  ((float)(stop-start))/1000000 );
+
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
                     Log.i("CardController", "After semaphore");
                     paymentSession.setAC(AC.getAC());
-                    emvChannel.write(protocol.createCardHello(paymentSession));
-                    break;
-                case EXT_SIGN:
                     Log.i(TAG, "INS_SIG");
                     emvChannel.write(protocol.sendSignature(paymentSession));
                     protocol.finish(paymentSession);
                     break;
                 default:
                     throw new RuntimeException("Command not found");
-            }
-            if(command.equals(CommandEnum.EXT_CL_HELLO)){
-                start = System.nanoTime();
-                byte [] key = protocol.programKey(paymentSession);
-                Log.i("CardController", "Write key to board: " + bin2hex(key));
-                //key = new byte[]{(byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A',
-                //                (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A'};
-                try{
-                    boardChannel.write(key);
-                }catch (Exception e){
-                    Log.e("Controller", "UART FAIL" + e);
-                }
             }
         }
     }
@@ -99,6 +108,7 @@ public class CardController extends PaymentController{
         Log.i("CardController", "Event: "+ evt.getPropertyName());
         protocol.parseTimingReport((byte[])evt.getNewValue(), paymentSession);
         stop = System.nanoTime();
+        uwbSemaphore.release();
         Log.i("CardController", "Ranging time" +  ((float)(stop-start))/1000000 );
     }
 }

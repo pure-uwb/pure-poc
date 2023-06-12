@@ -18,6 +18,14 @@ public abstract class PaymentController{
     protected Semaphore s;
     protected ApplicationCryptogram AC;
 
+    public Semaphore getSemaphore() {
+        return s;
+    }
+
+    public ApplicationCryptogram getAC() {
+        return AC;
+    }
+
     public PaymentController(Channel paymentChannel, Channel boardChannel, ProtocolExecutor protocol){
         this.emvChannel = paymentChannel;
         this.boardChannel = boardChannel;

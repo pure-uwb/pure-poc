@@ -59,20 +59,14 @@ public class ReaderController extends PaymentController {
             protocol.init(paymentSession);
             byte [] hello = protocol.createReaderHello(paymentSession);
             emvChannel.write(hello);
-            try {
-                s.acquire();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            paymentSession.setAC(AC.getAC());
             res = emvChannel.read();
-            protocol.parseCardHello(res, paymentSession);
             log(hello, res);
-            // TODO: execute this in a separate thread
+            protocol.parseCardHello(res, paymentSession);
             start = System.nanoTime();
             byte [] key = protocol.programKey(paymentSession);
             Log.i("ReaderController", "Write key to board: " + bin2hex(key));
             boardChannel.write(key);
+            // TODO: execute this in a separate thread
     }
 
     private void handleBoardEvent(PropertyChangeEvent evt){
@@ -80,6 +74,16 @@ public class ReaderController extends PaymentController {
         protocol.parseTimingReport((byte[]) evt.getNewValue(), paymentSession);
         stop = System.nanoTime();
         Log.i("ReaderController", "Ranging time" +  ((float)(stop-start))/1000000 );
+        try {
+            Long start, stop;
+            start = System.nanoTime();
+            s.acquire();
+            stop = System.nanoTime();
+            Log.i("Semaphores", "parserSemaphore" +  ((float)(stop-start))/1000000 );
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        paymentSession.setAC(AC.getAC());
         byte [] cmd = protocol.getSignatureCommand();
         emvChannel.write(cmd);
         byte [] res = emvChannel.read();

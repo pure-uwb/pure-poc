@@ -5,6 +5,8 @@ import static com.github.devnied.emvnfccard.utils.CommandApdu.getCommandEnum;
 import android.app.Activity;
 import android.util.Log;
 
+import androidx.annotation.RequiresPermission;
+
 import com.example.emvextension.Apdu.ApduWrapperCard;
 import com.example.emvextension.Apdu.ApduWrapperReader;
 import com.example.emvextension.channel.Channel;
@@ -49,7 +51,10 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
 
     private Activity activity;
 
+    private ReaderController readerController;
+    private CardController cardController = null;
     private boolean isProtocolFinished = false;
+    private Long start;
 
     private final String TAG = ProtocolModifierImpl.class.getName();
 
@@ -71,7 +76,6 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
             cmdEnum[3] = (byte) 0x00;
         }
         CommandEnum command = getCommandEnum(cmdEnum);
-        CardController cardController = null;
         switch (command) {
             case READ_RECORD:
                 parser.extractCardHolderName(res);
@@ -99,57 +103,72 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                 } else {
                     aip[1] = (byte) (aip[1] | EXTENSION_PROTOCOL_AIP_MASK);    // SET EXT to 1
                 }
+
+                if (executeExtension) {
+                    Log.i(this.getClass().getName(), "Start of extension");
+                    ApplicationCryptogram AC = new ApplicationCryptogram();
+                    Semaphore s = new Semaphore(0);
+                    // Controller MUST wait on the semaphore s before signing
+                    if (isReader) {
+                        readerController = ReaderController.getInstance(nfcChannel,
+                                Provider.getUartChannel(activity),
+                                new ProtocolExecutor(new ApduWrapperReader(), activity));
+                        readerController.initialize(s, AC, new Session(new ReaderStateMachine()));
+                        readerController.registerSessionListener(new Timer(new ReaderStateMachine()));
+                        readerController.registerSessionListener(this);
+                        Thread t = new ReaderControllerJob(readerController);
+                        t.start();
+                    } else {
+                        cardController = CardController.getInstance(nfcChannel,
+                                Provider.getUartChannel(activity),
+                                new ProtocolExecutor(new ApduWrapperCard(), activity));
+                        cardController.initialize(s, AC, new Session(new CardStateMachine()));
+                        cardController.registerSessionListener(new Timer(new CardStateMachine()));
+                    }
+                }
                 res = TlvUtil.setValue(res, EmvTags.APPLICATION_INTERCHANGE_PROFILE, aip, false);
+
+
                 break;
 
             case GEN_AC:
-                if (executeExtension) {
-                    Log.i(this.getClass().getName(), "Start of extension");
-                    EmvCard card = parser.getCard();
-                    card.setType(parser.findCardScheme(card.getAid(), card.getCardNumber()));
-                    // Derive the AC in parallel
-                    ApplicationCryptogram AC = new ApplicationCryptogram();
-                    Semaphore s = new Semaphore(0);
-
-                    new EmvParserJob(parser.getCard(), s, res, AC, activity, com.github.devnied.emvnfccard.R.raw.cardschemes_public_root_ca_keys).start();
-                    // Controller MUST wait on the semaphore s before signing
-                    if (isReader) {
-                        ReaderController controller = ReaderController.getInstance(nfcChannel,
-                                Provider.getUartChannel(activity),
-                                new ProtocolExecutor(new ApduWrapperReader(), activity));
-                        controller.initialize(s, AC, new Session(new ReaderStateMachine()));
-                        controller.registerSessionListener(new Timer(new ReaderStateMachine()));
-                        controller.registerSessionListener(this);
-                        Thread t = new ReaderControllerJob(controller);
-                        t.start();
+                EmvCard card = parser.getCard();
+                card.setType(parser.findCardScheme(card.getAid(), card.getCardNumber()));
+                // Derive the AC in parallel
+                if (executeExtension){
+                    if ( isReader ){
+                        new EmvParserJob(parser.getCard(), readerController.getSemaphore(),
+                                res, readerController.getAC(), activity,
+                                com.github.devnied.emvnfccard.R.raw.cardschemes_public_root_ca_keys).start();
                         try {
                             semaphore.acquire();
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
-                        ((MainActivity) activity).appendToLog(controller.getLog());
-                        if (!controller.isSuccess()) {
+                        ((MainActivity) activity).appendToLog(readerController.getLog());
+                        if (!readerController.isSuccess()) {
                             res = new byte[]{(byte) 0x00};
                             Log.e("ProtocolModifierImpl", "Extension protocol failed");
                         }
-
-                    } else {
-                         cardController = CardController.getInstance(nfcChannel,
-                                Provider.getUartChannel(activity),
-                                 new ProtocolExecutor(new ApduWrapperCard(), activity));
-                         cardController.initialize(s, AC, new Session(new CardStateMachine()));
-                         cardController.registerSessionListener(new Timer(new CardStateMachine()));
+                    } else{
+                        new EmvParserJob(parser.getCard(), cardController.getSemaphore(),
+                                res, cardController.getAC(), activity,
+                                com.github.devnied.emvnfccard.R.raw.cardschemes_public_root_ca_keys).start();
                     }
                 }
+                Long stop = System.nanoTime();
+                Log.i("Timer", "Total transaction time: " + ((float)(stop - start)/1000000));
                 isProtocolFinished = true;
                 break;
             case SELECT:
                 /*TODO: Add PDOL list so that the reader includes its capabilites regarding the
                  * Extention protocol
                  * */
+                start = System.nanoTime();
                 // Track AID
                 String aid = BytesUtils.bytesToStringNoSpace(TlvUtil.getValue(res, EmvTags.DEDICATED_FILE_NAME));
                 parser.getCard().setAid(aid);
+
                 break;
         }
         return res;

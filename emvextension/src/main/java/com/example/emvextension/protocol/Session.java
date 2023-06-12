@@ -150,8 +150,8 @@ public class Session  implements PropertyChangeObservable {
                 outputStream.write(longToBytes(pollTx));
                 outputStream.write(longToBytes(respRx));
                 outputStream.write(longToBytes(finalTx));
+                outputStream.write(AC);
             }
-            outputStream.write(AC);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -169,8 +169,8 @@ public class Session  implements PropertyChangeObservable {
                 outputStream.write(longToBytes(pollTx));
                 outputStream.write(longToBytes(respRx));
                 outputStream.write(longToBytes(finalTx));
+                outputStream.write(AC);
             }
-            outputStream.write(AC);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
