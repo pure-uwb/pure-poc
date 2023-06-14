@@ -5,6 +5,10 @@ import static com.example.emvextension.Apdu.UtilsAPDU.INS_SELECT;
 import static com.example.emvextension.Apdu.UtilsAPDU.INS_SIG;
 import static com.example.emvextension.Apdu.UtilsAPDU.INS_WRITE;
 import static com.example.emvextension.protocol.StateMachineUtils.stateToString;
+import static com.github.devnied.emvnfccard.iso7816emv.EmvTags.EXT_CERT;
+import static com.github.devnied.emvnfccard.iso7816emv.EmvTags.EXT_DH;
+import static com.github.devnied.emvnfccard.iso7816emv.EmvTags.EXT_MAC;
+import static com.github.devnied.emvnfccard.iso7816emv.EmvTags.EXT_SIGNATURE;
 
 import android.content.Context;
 import android.util.Log;
@@ -15,6 +19,8 @@ import com.example.emvextension.Crypto;
 import com.example.emvextension.HKDF.Hkdf;
 import com.example.emvextension.R;
 import com.github.devnied.emvnfccard.enums.CommandEnum;
+import com.github.devnied.emvnfccard.iso7816emv.TLV;
+import com.github.devnied.emvnfccard.utils.TlvUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -74,8 +80,10 @@ public class ProtocolExecutor {
         Log.i(TAG, "Encoded format: " + key.getPublic().getFormat());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
-            outputStream.write(key.getPublic().getEncoded());
-            outputStream.write(computeMac(session.getTagKey(), session.getTranscript()));
+            byte [] encoded = key.getPublic().getEncoded();
+            outputStream.write(new TLV(EXT_DH, encoded.length, encoded).getTlvBytes());
+            byte [] macTag = computeMac(session.getTagKey(), session.getTranscript());
+            outputStream.write(new TLV(EXT_MAC, macTag.length, macTag).getTlvBytes());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -90,6 +98,7 @@ public class ProtocolExecutor {
         if (key == null) throw new NullPointerException();
         Log.i(TAG, "Encoded format: " + key.getPublic().getFormat());
         byte[] response = key.getPublic().getEncoded();
+        response = new TLV(EXT_DH, response.length, response).getTlvBytes();
         Log.i(TAG, "CreateHello:\n" + getHex(response));
         session.step();
         return apduWrapper.encode(CommandEnum.EXT_CL_HELLO, response);
@@ -98,9 +107,8 @@ public class ProtocolExecutor {
 
     public void parseCardHello(byte[] helloMessage, Session session) {
         helloMessage = apduWrapper.decode(helloMessage);
-        byte[] dhBytes = Arrays.copyOfRange(helloMessage, 0, helloMessage.length - TAG_LEN);
-        byte[] tagBytes = Arrays.copyOfRange(helloMessage,
-                helloMessage.length - TAG_LEN, helloMessage.length);
+        byte[] dhBytes = TlvUtil.getValue(helloMessage, EXT_DH);
+        byte[] tagBytes = TlvUtil.getValue(helloMessage, EXT_MAC);
         Log.i(TAG, "Hello received:" + getHex(helloMessage));
 
         // Parse dh value
@@ -158,7 +166,8 @@ public class ProtocolExecutor {
 
     public void parseTerminalHello(byte[] helloMessage, Session session) {
         helloMessage = apduWrapper.decode(helloMessage);
-        Log.i(TAG, "Hello received:" + getHex(helloMessage));
+        byte[] dhBytes = TlvUtil.getValue(helloMessage, EXT_DH);
+        Log.i(TAG, "Hello received:" + getHex(dhBytes));
         PublicKey remoteKey;
         KeyFactory factory = null;
         try {
@@ -166,7 +175,7 @@ public class ProtocolExecutor {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-        EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(helloMessage);
+        EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(dhBytes);
 
         try {
             remoteKey = factory.generatePublic(publicKeySpec);
@@ -303,7 +312,8 @@ public class ProtocolExecutor {
         ByteArrayOutputStream signature = new ByteArrayOutputStream();
         try (InputStream inputStream = ctx.getResources().openRawResource(R.raw.pkcs8_card_key)) {
             RSAPrivateKey privateKey = Crypto.loadPrivateKey(inputStream);
-            signature.write(Crypto.sign(privateKey, session.getTranscript()));
+            byte [] valueBytes = Crypto.sign(privateKey, session.getTranscript());
+            signature.write(new TLV(EXT_SIGNATURE, valueBytes.length, valueBytes).getTlvBytes());
             Log.i(TAG, "Signing:\n" + BytesUtils.bytesToString(session.getTranscript()) + "\n");
             Log.i(TAG, "Card key modulus: " + privateKey.getModulus());
         } catch (IOException e) {
@@ -311,7 +321,7 @@ public class ProtocolExecutor {
         }
         try (InputStream inputStream = ctx.getResources().openRawResource(R.raw.certificate)) {
             byte [] cert = Crypto.loadCertificate(inputStream);
-            signature.write(cert);
+            signature.write(new TLV(EXT_CERT, cert.length, cert).getTlvBytes());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -323,8 +333,9 @@ public class ProtocolExecutor {
 
     public boolean verifySignature(byte[] signatureMessage, Session session) {
         signatureMessage = apduWrapper.decode(signatureMessage);
-        byte[] signature = Arrays.copyOfRange(signatureMessage, 0, 128);
-        byte[] cert = Arrays.copyOfRange(signatureMessage, 128, signatureMessage.length);
+        Log.i(TAG, BytesUtils.bytesToString(signatureMessage));
+        byte[] signature = TlvUtil.getValue(signatureMessage, EXT_SIGNATURE);
+        byte[] cert = TlvUtil.getValue(signatureMessage, EXT_CERT);
         Log.i(TAG, "Received signature: " + BytesUtils.bytesToString(signature));
         Log.i(TAG, "Received cert: " + BytesUtils.bytesToString(cert));
         try (InputStream inputStream = ctx.getResources().openRawResource(R.raw.ca_pubkey)) {

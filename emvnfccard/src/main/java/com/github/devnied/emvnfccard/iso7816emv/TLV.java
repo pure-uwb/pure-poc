@@ -15,6 +15,14 @@
  */
 package com.github.devnied.emvnfccard.iso7816emv;
 
+import android.icu.util.Output;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.math.BigInteger;
+import java.util.Arrays;
+
 /**
  * Tag and length value
  * 
@@ -54,6 +62,25 @@ public class TLV {
 		}
 		this.tag = tag;
 		this.rawEncodedLengthBytes = rawEncodedLengthBytes;
+		this.valueBytes = valueBytes;
+		this.length = length;
+	}
+
+	public TLV(final ITag tag, final int length, final byte[] valueBytes){
+		int length_len = (int)Math.floor((Math.floor(Math.log(length) / Math.log(2)) + 1 )/8) + 1;
+		ByteArrayOutputStream baos  = new ByteArrayOutputStream();
+		try {
+			if (length_len == 1){
+				baos.write((byte) length);
+			}else{
+				baos.write((byte) (length_len) | (byte) 0x80);
+				baos.write(BigInteger.valueOf(length).toByteArray());
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		rawEncodedLengthBytes = baos.toByteArray();
+		this.tag = tag;
 		this.valueBytes = valueBytes;
 		this.length = length;
 	}
@@ -141,6 +168,18 @@ public class TLV {
 	 */
 	public byte[] getTagBytes() {
 		return tag.getTagBytes();
+	}
+
+	public byte[] getTlvBytes(){
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try {
+			baos.write(tag.getTagBytes());
+			baos.write(rawEncodedLengthBytes);
+			baos.write(valueBytes);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		return baos.toByteArray();
 	}
 
 }

@@ -619,5 +619,4 @@ public final class TlvUtil {
 	 */
 	private TlvUtil() {
 	}
-
 }
