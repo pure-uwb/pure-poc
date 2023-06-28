@@ -35,6 +35,10 @@ public class ReaderBackend extends Thread {
             s.acquire();
             Log.i(TAG, "On thread" + Thread.currentThread());
             while (emvTrace.commandsHasNext()) {
+//            while(true){
+//                if(!emvTrace.commandsHasNext()){
+//                    emvTrace.resetCommands();
+//                }
                 if (Thread.interrupted()) {
                     // We've been interrupted: no more crunching.
                     return;
