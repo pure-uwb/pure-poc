@@ -69,7 +69,10 @@ public class RelayPosEmulator extends Thread {
             while (true) {
                 //waiting for connection with remote card emulator
                 Socket socket;
+                Log.i(this.getName(), "Before accept");
                 socket = serverSocket.accept();
+                Log.i(this.getName(), "After accept");
+
                 //read APDU command from socket
                 DataInputStream in = new DataInputStream(socket.getInputStream());
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -120,7 +123,7 @@ public class RelayPosEmulator extends Thread {
                     break;
                 }
             }
-//            tagComm.close();
+            tagComm.close();
         } catch (Exception e) {
             activity.showErrorOrWarning(e, true);
         }

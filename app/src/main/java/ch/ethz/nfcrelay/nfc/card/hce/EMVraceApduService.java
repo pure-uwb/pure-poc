@@ -33,7 +33,11 @@ public class EMVraceApduService extends HostApduService {
 
     @Override
     public void onDeactivated(int reason) {
-        if (cardActivity != null)
-            cardActivity.onApduServiceDeactivated(reason);
+        try{
+            if (cardActivity != null)
+                cardActivity.onApduServiceDeactivated(reason);
+        }catch (Exception e){
+            Log.e(this.getClass().getName(), e.toString());
+        }
     }
 }

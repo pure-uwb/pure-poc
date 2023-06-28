@@ -44,7 +44,7 @@ public class ResponseResolver extends Thread {
             Log.i("ResponderResolver", "PORT" + port);
             //create socket
             Socket socket = new Socket(ip, port);
-
+            Log.i("ResponseResolver", "Connected to" + socket);
             //write APDU command to socket
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
             out.write(cmd);

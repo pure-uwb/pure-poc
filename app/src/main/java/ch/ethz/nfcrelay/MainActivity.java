@@ -369,12 +369,13 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             try {
                 serverSocket.close();
                 serverSocket = new ServerSocket(PORT_READER_TO_BACKEND);
-
+                Log.i("MainActivity", "Start server socket on " + PORT_READER_TO_BACKEND);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
             Log.i("MainActivity", "New Tag");
             tagComm = IsoDep.get(tag);
+            tagComm.setTimeout(30000);
             updateStatus(getString(R.string.card_connected), true);
             ProtocolModifier modifier = Provider.getModifier(this, true);
             modifier.setNfcChannel(new NfcChannel(tagComm));
