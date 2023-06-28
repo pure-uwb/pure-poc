@@ -50,46 +50,48 @@ public class ReaderController extends PaymentController {
         return protocolLog.toString().trim();
     }
     public void start(){
-            byte [] res;
-            PropertyChangeListener[] listeners = paymentSession.getListeners();
-            paymentSession = new Session(new ReaderStateMachine());
-            for (PropertyChangeListener l :listeners) {
-                paymentSession.addPropertyChangeListener(l);
-            }
-            protocol.init(paymentSession);
-            byte [] hello = protocol.createReaderHello(paymentSession);
-            emvChannel.write(hello);
-            res = emvChannel.read();
-            log(hello, res);
-            protocol.parseCardHello(res, paymentSession);
-            start = System.nanoTime();
-            byte [] key = protocol.programKey(paymentSession);
-            Log.i("ReaderController", "Write key to board: " + bin2hex(key));
-            boardChannel.write(key);
-            // TODO: execute this in a separate thread
+        byte [] res;
+        PropertyChangeListener[] listeners = paymentSession.getListeners();
+        paymentSession = new Session(new ReaderStateMachine());
+        for (PropertyChangeListener l :listeners) {
+            paymentSession.addPropertyChangeListener(l);
+        }
+        protocol.init(paymentSession);
+        paymentSession.step();
+        byte [] hello = protocol.createReaderHello(paymentSession);
+        emvChannel.write(hello);
+        paymentSession.step();
+        res = emvChannel.read();
+        log(hello, res);
+        protocol.parseCardHello(res, paymentSession);
+        paymentSession.step();
+        start = System.nanoTime();
+        byte [] key = protocol.programKey(paymentSession);
+        Log.i("ReaderController", "Write key to board: " + bin2hex(key));
+        boardChannel.write(key);
     }
 
     private void handleBoardEvent(PropertyChangeEvent evt){
         Log.i("ReaderController", "Event: "+ evt.getPropertyName());
         protocol.parseTimingReport((byte[]) evt.getNewValue(), paymentSession);
         stop = System.nanoTime();
+        paymentSession.step();
         Log.i("ReaderController", "Ranging time" +  ((float)(stop-start))/1000000 );
         try {
-            Long start, stop;
-            start = System.nanoTime();
             s.acquire();
-            stop = System.nanoTime();
-            Log.i("Semaphores", "parserSemaphore" +  ((float)(stop-start))/1000000 );
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+        paymentSession.step();
         paymentSession.setAC(AC.getAC());
         byte [] cmd = protocol.getSignatureCommand();
         emvChannel.write(cmd);
         byte [] res = emvChannel.read();
         log(cmd, res);
         protocol.verifySignature(res, paymentSession);
+        paymentSession.step();
         protocol.finish(paymentSession);
+        paymentSession.step();
     }
 
     public boolean isSuccess(){

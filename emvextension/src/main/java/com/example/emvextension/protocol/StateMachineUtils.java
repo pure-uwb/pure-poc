@@ -1,6 +1,7 @@
 package com.example.emvextension.protocol;
 
 import static com.example.emvextension.protocol.StateMachine.State.AUTH;
+import static com.example.emvextension.protocol.StateMachine.State.AUTH_PRE;
 import static com.example.emvextension.protocol.StateMachine.State.FINISH;
 import static com.example.emvextension.protocol.StateMachine.State.INIT;
 import static com.example.emvextension.protocol.StateMachine.State.RANGE;
@@ -22,6 +23,7 @@ public class StateMachineUtils {
         stateNamesTmp.put(SEND_HELLO, "SEND_HELLO");
         stateNamesTmp.put(RANGE, "RANGE");
         stateNamesTmp.put(AUTH, "AUTH");
+        stateNamesTmp.put(AUTH_PRE, "AUTH_PRE");
         stateNamesTmp.put(FINISH, "FINISH");
         stateNames = Collections.unmodifiableMap(stateNamesTmp);
 
@@ -31,6 +33,7 @@ public class StateMachineUtils {
         nameToStateTmp.put("SEND_HELLO", SEND_HELLO);
         nameToStateTmp.put("RANGE", RANGE);
         nameToStateTmp.put("AUTH", AUTH);
+        nameToStateTmp.put("AUTH_PRE", AUTH_PRE);
         nameToStateTmp.put("FINISH", FINISH);
         namesState = Collections.unmodifiableMap(nameToStateTmp);
     }

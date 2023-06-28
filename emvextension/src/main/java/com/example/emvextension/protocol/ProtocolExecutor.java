@@ -89,7 +89,6 @@ public class ProtocolExecutor {
         }
         byte[] response = outputStream.toByteArray();
         Log.i(TAG, "CreateHello:\n" + getHex(response));
-        session.step();
         return apduWrapper.encode(response);
     }
 
@@ -100,7 +99,6 @@ public class ProtocolExecutor {
         byte[] response = key.getPublic().getEncoded();
         response = new TLV(EXT_DH, response.length, response).getTlvBytes();
         Log.i(TAG, "CreateHello:\n" + getHex(response));
-        session.step();
         return apduWrapper.encode(CommandEnum.EXT_CL_HELLO, response);
     }
 
@@ -161,7 +159,6 @@ public class ProtocolExecutor {
             throw new RuntimeException("TAG DO NOT MATCH");
         }
 
-        session.step();
     }
 
     public void parseTerminalHello(byte[] helloMessage, Session session) {
@@ -210,16 +207,13 @@ public class ProtocolExecutor {
         session.setSecret(secret);
         session.setTagKey(tagKey);
 
-        session.step();
     }
 
     public byte[] selectAID(Session session) {
-        session.step();
         return apduWrapper.encode(CommandEnum.EXT_SELECT_AID ,SelectAID);
     }
 
     public byte[] respSelectAid(Session session) {
-        session.step();
         return apduWrapper.encode(new byte[]{(byte) 0x00, (byte) 0x00});
     }
 
@@ -251,7 +245,6 @@ public class ProtocolExecutor {
     public void parseTimingReport(byte[] timingsBytes, Session paymentSession) {
         if (timingsBytes == null) {
             Log.i(TAG, "Skip card record (useless)");
-            paymentSession.step();
             return;
         }
         if (paymentSession.getState() != StateMachine.State.RANGE) {
@@ -287,7 +280,6 @@ public class ProtocolExecutor {
         } catch (Exception e) {
             Log.e(TAG, e.toString());
         } finally {
-            paymentSession.step();
         }
 
     }
@@ -327,7 +319,6 @@ public class ProtocolExecutor {
         }
         Log.i(TAG,"Sending signature (sign || cert): " + BytesUtils.bytesToString(signature.toByteArray()));
         Log.i(TAG, "Signature length:" + signature.size());
-        session.step();
         return apduWrapper.encode(signature.toByteArray());
     }
 
@@ -354,12 +345,10 @@ public class ProtocolExecutor {
             throw new RuntimeException(e);
         }
         session.setSignVerif(true);
-        session.step();
         return true;
     }
 
     public void init(Session paymentSession) {
-        paymentSession.step();
     }
 }
 

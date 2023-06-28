@@ -61,8 +61,11 @@ public class CardController extends PaymentController{
                         paymentSession.addPropertyChangeListener(l);
                     }
                     protocol.init(paymentSession);
+                    paymentSession.step();
                     protocol.parseTerminalHello(cmd, paymentSession);
+                    paymentSession.step();
                     emvChannel.write(protocol.createCardHello(paymentSession));
+                    paymentSession.step();
                     Log.i("CardController", "permits: " + s.availablePermits());
                     Log.i("CardController", "Semaphore hashcode: " + s.toString());
                     uwbSemaphore = new Semaphore(0);
@@ -79,24 +82,17 @@ public class CardController extends PaymentController{
                     break;
                 case EXT_SIGN:
                     try {
-                        Long start, stop;
-                        start = System.nanoTime();
                         s.acquire();
-                        stop = System.nanoTime();
-                        Log.i("Semaphores", "parserSemaphore" +  ((float)(stop-start))/1000000 );
-                        start = System.nanoTime();
                         uwbSemaphore.acquire();
-                        stop = System.nanoTime();
-                        Log.i("Semaphores", "uwbSemaphore" +  ((float)(stop-start))/1000000 );
-
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                    Log.i("CardController", "After semaphore");
                     paymentSession.setAC(AC.getAC());
                     Log.i(TAG, "INS_SIG");
                     emvChannel.write(protocol.sendSignature(paymentSession));
+                    paymentSession.step();
                     protocol.finish(paymentSession);
+                    paymentSession.step();
                     break;
                 default:
                     throw new RuntimeException("Command not found");
@@ -107,6 +103,7 @@ public class CardController extends PaymentController{
     private void handleBoardEvent(PropertyChangeEvent evt){
         Log.i("CardController", "Event: "+ evt.getPropertyName());
         protocol.parseTimingReport((byte[])evt.getNewValue(), paymentSession);
+        paymentSession.step();
         stop = System.nanoTime();
         uwbSemaphore.release();
         Log.i("CardController", "Ranging time" +  ((float)(stop-start))/1000000 );

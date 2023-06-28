@@ -1,6 +1,7 @@
 package com.example.emvextension.protocol;
 
 import static com.example.emvextension.protocol.StateMachine.State.AUTH;
+import static com.example.emvextension.protocol.StateMachine.State.AUTH_PRE;
 import static com.example.emvextension.protocol.StateMachine.State.FINISH;
 import static com.example.emvextension.protocol.StateMachine.State.INIT;
 import static com.example.emvextension.protocol.StateMachine.State.RANGE;
@@ -20,7 +21,8 @@ public class ReaderStateMachine implements StateMachine {
         steps_tmp.put(INIT, SEND_HELLO);
         steps_tmp.put(SEND_HELLO, RECEIVE_HELLO);
         steps_tmp.put(RECEIVE_HELLO, RANGE);
-        steps_tmp.put(RANGE, AUTH);
+        steps_tmp.put(RANGE, AUTH_PRE);
+        steps_tmp.put(AUTH_PRE, AUTH);
         steps_tmp.put(AUTH, FINISH);
         steps = Collections.unmodifiableMap(steps_tmp);
     }

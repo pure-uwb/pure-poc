@@ -16,7 +16,7 @@ public class UartChannelMock extends Channel{
     @Override
     public void write(byte[] payload) {
         try {
-            Thread.sleep(1);
+            Thread.sleep(50);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

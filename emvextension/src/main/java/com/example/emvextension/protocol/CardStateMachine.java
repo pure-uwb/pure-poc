@@ -2,6 +2,7 @@ package com.example.emvextension.protocol;
 
 
 import static com.example.emvextension.protocol.StateMachine.State.AUTH;
+import static com.example.emvextension.protocol.StateMachine.State.AUTH_PRE;
 import static com.example.emvextension.protocol.StateMachine.State.FINISH;
 import static com.example.emvextension.protocol.StateMachine.State.INIT;
 import static com.example.emvextension.protocol.StateMachine.State.RANGE;
