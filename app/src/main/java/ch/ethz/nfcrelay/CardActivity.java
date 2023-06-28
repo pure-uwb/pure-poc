@@ -1,5 +1,9 @@
 package ch.ethz.nfcrelay;
 
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,7 +13,13 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.emvextension.BuildConfig;
 import com.example.emvextension.protocol.ProtocolModifier;
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
+import com.hoho.android.usbserial.driver.UsbSerialProber;
+
+import java.util.List;
+
 import ch.ethz.nfcrelay.nfc.ProtocolModifierImpl;
 
 import ch.ethz.nfcrelay.nfc.Util;
@@ -37,6 +47,24 @@ public class CardActivity extends AppCompatActivity {
         ivOK = findViewById(R.id.ivOK);
         pbTransacting = findViewById(R.id.pbTransacting);
         tvMsg = findViewById(R.id.tvMsg);
+        initializeUart();
+    }
+    private void initializeUart(){
+        UsbManager manager = (UsbManager) this.getBaseContext().getSystemService(Context.USB_SERVICE);
+        List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager);
+        if (availableDrivers.isEmpty()) {
+            return;
+        }
+
+        // Open a connection to the first available driver.
+        UsbSerialDriver driver = availableDrivers.get(0);
+        if (!manager.hasPermission(driver.getDevice())) {
+            Log.i("UART", "Request permission");
+            int flags = PendingIntent.FLAG_MUTABLE;
+            String INTENT_ACTION_GRANT_USB = BuildConfig.LIBRARY_PACKAGE_NAME + ".GRANT_USB";
+            PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(INTENT_ACTION_GRANT_USB), flags);
+            manager.requestPermission(driver.getDevice(), usbPermissionIntent);
+        }
     }
 
     public void onApduCommandReceived(byte[] cmd) {
