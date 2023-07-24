@@ -32,7 +32,7 @@ public class ReaderBackend extends Thread {
     @Override
     public void run() {
         try {
-            s.acquire();
+//            s.acquire();
             Log.i(TAG, "On thread" + Thread.currentThread());
             while (emvTrace.commandsHasNext()) {
 //            while(true){
