@@ -33,7 +33,9 @@ public class CommandDispatcherImpl extends Channel implements ch.ethz.nfcrelay.n
                 Log.i("Dispatcher", "Extension command: " + Util.bytesToHex(cmd));
                 this.cmd = cmd;
                 this.hostApduService = hostApduService;
-                this.notifyAllListeners(EVT_CMD, null, null);
+                new Thread(() -> {
+                    this.notifyAllListeners(EVT_CMD, null, null);
+                }).start();
             }else{
                 Log.i("Dispatcher", "EMV command: " + Util.bytesToHex(cmd));
                 ResponseResolver responseResolver = new ResponseResolver(hostApduService, ip, port,

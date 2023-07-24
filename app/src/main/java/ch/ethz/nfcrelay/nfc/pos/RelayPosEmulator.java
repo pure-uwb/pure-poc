@@ -96,7 +96,11 @@ public class RelayPosEmulator extends Thread {
                 if(tagComm == null || !tagComm.isConnected()){
                     return;
                 }
+                Long start = System.nanoTime();
                 byte[] resp = tagComm.transceive(cmd);
+                Long stop = System.nanoTime();
+                Log.i("Timer", "Time: " + ((float)(stop - start)/1000000) +"\t Cmd_len:" + cmd.length +  "\tResp_len: "+ resp.length);
+
 
                 //refresh GUI with response
 
@@ -123,7 +127,6 @@ public class RelayPosEmulator extends Thread {
                     break;
                 }
             }
-            tagComm.close();
         } catch (Exception e) {
             activity.showErrorOrWarning(e, true);
         }
