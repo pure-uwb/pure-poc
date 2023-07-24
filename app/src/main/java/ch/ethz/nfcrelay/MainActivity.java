@@ -4,6 +4,7 @@ import static android.nfc.NfcAdapter.FLAG_READER_NFC_A;
 import static android.nfc.NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK;
 import static ch.ethz.nfcrelay.nfc.BuildSettings.mockBackend;
 import static ch.ethz.nfcrelay.nfc.BuildSettings.mockUart;
+import static ch.ethz.nfcrelay.nfc.BuildSettings.number_of_tests;
 import static ch.ethz.nfcrelay.nfc.BuildSettings.transparentRelay;
 
 import android.app.PendingIntent;
@@ -363,38 +364,54 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
     @Override
     public void onTagDiscovered(Tag tag) {
-        runOnUiThread(() -> tvLog.setText(""));
         Thread t;
         if (isPOS) {
-            try {
-                serverSocket.close();
-                serverSocket = new ServerSocket(PORT_READER_TO_BACKEND);
-                Log.i("MainActivity", "Start server socket on " + PORT_READER_TO_BACKEND);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            Log.i("MainActivity", "New Tag");
             tagComm = IsoDep.get(tag);
             tagComm.setTimeout(30000);
-            updateStatus(getString(R.string.card_connected), true);
-            ProtocolModifier modifier = Provider.getModifier(this, true);
-            modifier.setNfcChannel(new NfcChannel(tagComm));
-            List<Thread> newThreadList = new LinkedList<>();
-            for (Thread thread : threadList) {
-                Log.i("MainActivity", "Interrupt thread:" + thread);
-                thread.interrupt();
+            try {
+                if (tagComm != null && !tagComm.isConnected())
+                    tagComm.connect();
+
+            } catch (IOException e) {
+                this.showErrorOrWarning(e, true);
             }
-            if (mockBackend) {
-                EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercard_gold_to_selecta));
-                Log.i("MainActivity", "Reader Backend create");
-                t  = new ReaderBackend(getLocalIpAddress(), PORT_READER_TO_BACKEND, emvTrace, readerSemaphore);
-                t.start();
+            // NOTE: set number_of_tests to 1 to have a single transaction on every new discovered tag
+            for (int i = 0; i < number_of_tests; i++) {
+                runOnUiThread(() -> tvLog.setText(""));
+                try {
+                    serverSocket.close();
+                    serverSocket = new ServerSocket(PORT_READER_TO_BACKEND);
+                    Log.i("MainActivity", "Start server socket on " + PORT_READER_TO_BACKEND);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                Log.i("MainActivity", "New Tag");
+
+                updateStatus(getString(R.string.card_connected), true);
+                ProtocolModifier modifier = Provider.getModifier(this, true);
+                modifier.setNfcChannel(new NfcChannel(tagComm));
+                List<Thread> newThreadList = new LinkedList<>();
+                for (Thread thread : threadList) {
+                    Log.i("MainActivity", "Interrupt thread:" + thread);
+                    thread.interrupt();
+                }
+                if (mockBackend) {
+                    EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercard_gold_to_selecta));
+                    Log.i("MainActivity", "Reader Backend create");
+                    t = new ReaderBackend(getLocalIpAddress(), PORT_READER_TO_BACKEND, emvTrace, readerSemaphore);
+                    t.start();
+                    newThreadList.add(t);
+                }
+                t = new RelayPosEmulator(this, tagComm, modifier, readerSemaphore);
                 newThreadList.add(t);
+                t.start();
+                try {
+                    t.join();
+                } catch (InterruptedException e) {
+                    Log.e("MainActivity", "Thread interrupted");
+                }
+                threadList = newThreadList;
             }
-            t = new RelayPosEmulator(this, tagComm, modifier, readerSemaphore);
-            newThreadList.add(t);
-            t.start();
-            threadList = newThreadList;
         }
     }
 }

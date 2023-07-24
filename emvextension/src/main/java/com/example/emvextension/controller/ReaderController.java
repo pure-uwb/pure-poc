@@ -63,12 +63,14 @@ public class ReaderController extends PaymentController {
         paymentSession.step();
         res = emvChannel.read();
         log(hello, res);
-        protocol.parseCardHello(res, paymentSession);
-        paymentSession.step();
-        start = System.nanoTime();
-        byte [] key = protocol.programKey(paymentSession);
-        Log.i("ReaderController", "Write key to board: " + bin2hex(key));
-        boardChannel.write(key);
+        new Thread(()->{
+            protocol.parseCardHello(res, paymentSession);
+            paymentSession.step();
+            start = System.nanoTime();
+            byte [] key = protocol.programKey(paymentSession);
+            Log.i("ReaderController", "Write key to board: " + bin2hex(key));
+            boardChannel.write(key);
+        }).start();
     }
 
     private void handleBoardEvent(PropertyChangeEvent evt){
@@ -78,7 +80,10 @@ public class ReaderController extends PaymentController {
         paymentSession.step();
         Log.i("ReaderController", "Ranging time" +  ((float)(stop-start))/1000000 );
         try {
+            Long start = System.nanoTime();
             s.acquire();
+            Long stop = System.nanoTime();
+            Log.i("Timer", "[SEM]\t" + "Time: " + ((float)(stop - start)/1000000));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

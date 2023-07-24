@@ -46,6 +46,6 @@ public class Timer implements PropertyChangeListener {
             }
             elapsedTime.put(String.format("%s->%s", s, next), ((float)(timings.get(next) - timings.get(s)))/NANO_TO_MILLI );
         }
-        Log.i("Timing report", elapsedTime.toString());
+        Log.i("Timer", elapsedTime.toString());
     }
 }

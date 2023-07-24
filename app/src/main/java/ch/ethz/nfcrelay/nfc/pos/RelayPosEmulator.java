@@ -1,5 +1,6 @@
 package ch.ethz.nfcrelay.nfc.pos;
 
+import android.content.Context;
 import android.nfc.tech.IsoDep;
 import android.util.Log;
 
@@ -8,12 +9,16 @@ import com.example.emvextension.protocol.ProtocolModifier;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
+import ch.ethz.nfcrelay.nfc.BuildSettings;
 import ch.ethz.nfcrelay.MainActivity;
 import ch.ethz.nfcrelay.R;
 import ch.ethz.nfcrelay.nfc.Util;
@@ -24,19 +29,25 @@ public class RelayPosEmulator extends Thread {
     private final IsoDep tagComm;
     private final ProtocolModifier modifier;
     private final Semaphore semaphore;
+    private Long total_time_start;
+    private Long total_time_finish;
+    private Long summed;
+    private final static List<String> commands = Arrays.asList("SEL1", "SEL2", "GPO", "RR1", "RR2", "RR3", "RR4", "GEN_AC",
+                                                                "SEL1_MOD", "SEL2_MOD", "GPO_MOD", "RR1_MOD", "RR2_MOD", "RR3_MOD", "RR4_MOD", "GEN_AC_MOD");
+    private List<String> timings;
+    private List<String> timingsMod;
 
     public RelayPosEmulator(MainActivity activity, IsoDep tagComm, ProtocolModifier modifier, Semaphore s) {
         this.activity = activity;
         this.tagComm = tagComm;
         this.modifier = modifier;
         this.semaphore = s;
-        try {
-            if (tagComm != null && !tagComm.isConnected())
-                tagComm.connect();
 
-        } catch (IOException e) {
-            activity.showErrorOrWarning(e, true);
-        }
+        total_time_start = null;
+        total_time_finish = null;
+        summed = 0L;
+        timings = new LinkedList<>();
+        timingsMod = new LinkedList<>();
     }
 
     @Override
@@ -68,11 +79,13 @@ public class RelayPosEmulator extends Thread {
             Log.i(this.getName(), "Transaction started");
             while (true) {
                 //waiting for connection with remote card emulator
+                Long start = System.nanoTime();
                 Socket socket;
                 Log.i(this.getName(), "Before accept");
                 socket = serverSocket.accept();
                 Log.i(this.getName(), "After accept");
-
+                if (total_time_start == null)
+                    total_time_start = start;
                 //read APDU command from socket
                 DataInputStream in = new DataInputStream(socket.getInputStream());
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -96,19 +109,16 @@ public class RelayPosEmulator extends Thread {
                 if(tagComm == null || !tagComm.isConnected()){
                     return;
                 }
-                Long start = System.nanoTime();
                 byte[] resp = tagComm.transceive(cmd);
-                Long stop = System.nanoTime();
-                Log.i("Timer", "Time: " + ((float)(stop - start)/1000000) +"\t Cmd_len:" + cmd.length +  "\tResp_len: "+ resp.length);
-
-
                 //refresh GUI with response
 
                 // HERE ON gen_ac_command do:
                 // 1. extract AC
                 // 2. execute extension protocol
                 // 3. Send AC to the socket only if extension protocol succeeded
+                Long start_modifier = System.nanoTime();
                 resp = modifier.parse(cmd, resp);
+                Long end_modifier = System.nanoTime();
 
                 activity.appendToLog("[R-APDU] " + Util.bytesToHex(resp));
                 Log.i(this.getName(), "[R-APDU] " + Util.bytesToHex(resp));
@@ -122,13 +132,45 @@ public class RelayPosEmulator extends Thread {
                 out.close();
                 in.close();
                 socket.close();
+
+                Long stop = System.nanoTime();
+                Log.i("Timer", "[STD]\t" + "Time: " + ((float)(stop - start)/1000000) +"\tModifier: "+ ((float)(end_modifier - start_modifier)/1000000) );
+                timings.add(String.format("%.2f", (float)(stop - start)/1000000));
+                timingsMod.add(String.format("%.2f", ((float)(end_modifier - start_modifier)/1000000)));
+                summed += (stop-start);
                 if(modifier.isProtocolFinished()){
                     Log.i("RelayPosEmulator", "Protocol finished");
                     break;
                 }
             }
+            total_time_finish = System.nanoTime();
+            Log.i("Timer", "[TOT]\t" + "Time: " + ((float)(total_time_finish - total_time_start)/1000000));
+            Log.i("Timer", "[SUM]\t" + "Time: " + ((float)(summed)/1000000));
+            Log.i("Timer", "#############################################################################");
+            saveTimings();
         } catch (Exception e) {
             activity.showErrorOrWarning(e, true);
+        }
+    }
+
+    private void saveTimings(){
+        Log.i("Timings", "SAVING FILE in " + activity.getFilesDir());
+        if (!Arrays.asList(activity.fileList()).contains(BuildSettings.outputFileName)){
+            try (FileOutputStream fos = activity.openFileOutput(BuildSettings.outputFileName, Context.MODE_PRIVATE)) {
+                fos.write(String.join(",", commands).getBytes());
+                fos.write("\n".getBytes());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        try(FileOutputStream fos = activity.openFileOutput(BuildSettings.outputFileName,
+                Context.MODE_APPEND )){
+            fos.write(String.join(",", timings).getBytes());
+            fos.write(",".getBytes());
+            fos.write(String.join(",", timingsMod).getBytes());
+            fos.write("\n".getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

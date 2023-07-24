@@ -27,7 +27,7 @@ public class NfcChannel extends Channel {
             Long start = System.nanoTime();
             response = tag.transceive(payload);
             Long stop = System.nanoTime();
-            Log.i("Timer", "Time: " + ((float)(stop - start)/1000000) +"\t Cmd_len:" + payload.length +  "\tResp_len: "+ response.length);
+            Log.i("Timer", "[EXT]\tTime: " + ((float)(stop - start)/1000000) +"\t Cmd_len:" + payload.length +  "\tResp_len: "+ response.length);
 
 
 

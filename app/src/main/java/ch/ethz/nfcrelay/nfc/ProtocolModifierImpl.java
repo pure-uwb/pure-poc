@@ -116,8 +116,7 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                         readerController.initialize(s, AC, new Session(new ReaderStateMachine()));
                         readerController.registerSessionListener(new Timer(new ReaderStateMachine()));
                         readerController.registerSessionListener(this);
-                        Thread t = new ReaderControllerJob(readerController);
-                        t.start();
+                        readerController.start();
                     } else {
                         cardController = CardController.getInstance(nfcChannel,
                                 Provider.getUartChannel(activity),

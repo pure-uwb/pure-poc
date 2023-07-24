@@ -52,6 +52,7 @@ public class EmvParserJob extends Thread {
     @Override
     public void run() {
 
+        Long start = System.nanoTime();
         byte[] ACBytes = TlvUtil.getValue(genAcResponse, EmvTags.APP_CRYPTOGRAM);
         if(ACBytes == null){
             byte [] sdad = TlvUtil.getValue(genAcResponse, EmvTags.SIGNED_DYNAMIC_APPLICATION_DATA);
@@ -63,6 +64,9 @@ public class EmvParserJob extends Thread {
 
         AC.setAC(ACBytes);
         s.release();
+        Long stop = System.nanoTime();
+        Log.i("Timer", "[PRS]\t" + "Time: " + ((float)(stop - start)/1000000));
+
     }
 
     private byte [] getACFromSdad(byte [] sdad){
