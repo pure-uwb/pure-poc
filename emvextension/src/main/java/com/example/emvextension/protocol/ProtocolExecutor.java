@@ -1,9 +1,6 @@
 package com.example.emvextension.protocol;
 
 import static com.example.emvextension.Apdu.HexUtils.bin2hex;
-import static com.example.emvextension.Apdu.UtilsAPDU.INS_SELECT;
-import static com.example.emvextension.Apdu.UtilsAPDU.INS_SIG;
-import static com.example.emvextension.Apdu.UtilsAPDU.INS_WRITE;
 import static com.example.emvextension.protocol.StateMachineUtils.stateToString;
 import static com.github.devnied.emvnfccard.iso7816emv.EmvTags.EXT_CERT;
 import static com.github.devnied.emvnfccard.iso7816emv.EmvTags.EXT_DH;
@@ -27,16 +24,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
-import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.Security;
+import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.EncodedKeySpec;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 
 import javax.crypto.KeyAgreement;
@@ -75,12 +69,14 @@ public class ProtocolExecutor {
     }
 
     public byte[] createCardHello(Session session) {
+        Long start = System.nanoTime();
         KeyPair key = session.getLocalKey();
         if (key == null) throw new NullPointerException();
-        Log.i(TAG, "Encoded format: " + key.getPublic().getFormat());
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
-            byte [] encoded = key.getPublic().getEncoded();
+            ECPublicKey pk = (ECPublicKey) key.getPublic();
+            byte [] encoded =  Crypto.encodePublicKey(pk);
+            Log.i(TAG, "Encoded format: " + key.getPublic().getFormat() + "len: " + encoded.length);
             outputStream.write(new TLV(EXT_DH, encoded.length, encoded).getTlvBytes());
             byte [] macTag = computeMac(session.getTagKey(), session.getTranscript());
             outputStream.write(new TLV(EXT_MAC, macTag.length, macTag).getTlvBytes());
@@ -89,14 +85,18 @@ public class ProtocolExecutor {
         }
         byte[] response = outputStream.toByteArray();
         Log.i(TAG, "CreateHello:\n" + getHex(response));
+        Long stop = System.nanoTime();
+        Log.i("Timer", "CreateCardHello: " + ((float)(stop - start)/1000000));
         return apduWrapper.encode(response);
     }
 
     public byte[] createReaderHello(Session session) {
         KeyPair key = session.getLocalKey();
         if (key == null) throw new NullPointerException();
+        ECPublicKey pk = (ECPublicKey) key.getPublic();
+        byte [] encoded  = Crypto.encodePublicKey(pk);
         Log.i(TAG, "Encoded format: " + key.getPublic().getFormat());
-        byte[] response = key.getPublic().getEncoded();
+        byte[] response = encoded;//key.getPublic().getEncoded();
         response = new TLV(EXT_DH, response.length, response).getTlvBytes();
         Log.i(TAG, "CreateHello:\n" + getHex(response));
         return apduWrapper.encode(CommandEnum.EXT_CL_HELLO, response);
@@ -104,6 +104,8 @@ public class ProtocolExecutor {
 
 
     public void parseCardHello(byte[] helloMessage, Session session) {
+        Long start = System.nanoTime();
+
         helloMessage = apduWrapper.decode(helloMessage);
         byte[] dhBytes = TlvUtil.getValue(helloMessage, EXT_DH);
         byte[] tagBytes = TlvUtil.getValue(helloMessage, EXT_MAC);
@@ -111,20 +113,7 @@ public class ProtocolExecutor {
 
         // Parse dh value
         PublicKey remoteKey;
-        KeyFactory factory = null;
-        try {
-            factory = KeyFactory.getInstance("EC");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-        EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(dhBytes);
-
-        try {
-            remoteKey = factory.generatePublic(publicKeySpec);
-        } catch (InvalidKeySpecException e) {
-            Log.e(TAG, "Invalid key");
-            throw new RuntimeException(e);
-        }
+        remoteKey = Crypto.decodePublicKey(dhBytes);
         session.setRemoteKey(remoteKey);
         KeyAgreement ecdhU = null;
         try {
@@ -155,31 +144,21 @@ public class ProtocolExecutor {
         // Verify MAC
         // MAC is used to have explicit key confirmation
         byte[] tag = computeMac(tagKey, session.getRemoteTranscript());
-        if (!Arrays.equals(tag, tagBytes)) {
-            throw new RuntimeException("TAG DO NOT MATCH");
-        }
+       if (!Arrays.equals(tag, tagBytes)) {
+           throw new RuntimeException("TAG DO NOT MATCH");
+       }
+        Long stop = System.nanoTime();
+        Log.i("Timer", "ParseCardHello: " + ((float)(stop - start)/1000000));
 
     }
 
     public void parseTerminalHello(byte[] helloMessage, Session session) {
+        Long start = System.nanoTime();
+
         helloMessage = apduWrapper.decode(helloMessage);
         byte[] dhBytes = TlvUtil.getValue(helloMessage, EXT_DH);
-        Log.i(TAG, "Hello received:" + getHex(dhBytes));
-        PublicKey remoteKey;
-        KeyFactory factory = null;
-        try {
-            factory = KeyFactory.getInstance("EC");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-        EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(dhBytes);
 
-        try {
-            remoteKey = factory.generatePublic(publicKeySpec);
-        } catch (InvalidKeySpecException e) {
-            Log.e(TAG, "Invalid key");
-            throw new RuntimeException(e);
-        }
+        PublicKey remoteKey = Crypto.decodePublicKey(dhBytes); // <-- exception here
         session.setRemoteKey(remoteKey);
         KeyAgreement ecdhU = null;
         try {
@@ -206,6 +185,8 @@ public class ProtocolExecutor {
 
         session.setSecret(secret);
         session.setTagKey(tagKey);
+        Long stop = System.nanoTime();
+        Log.i("Timer", "ParseTerminalHello: " + ((float)(stop - start)/1000000));
 
     }
 
