@@ -66,6 +66,7 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
 
     @Override
     public byte[] parse(byte[] cmd, byte[] res) throws EmvParsingException {
+        Long start_parse = System.nanoTime();
         byte[] cmdEnum = Arrays.copyOf(cmd, cmd.length);
         if (cmd[0] == (byte) 0x80 & cmd[1] == (byte) 0xAE) {
             // NOTE: In GEN AC, P1 is variable. Enum looks for P1 = 0x00 to recognise GEN AC.
@@ -149,7 +150,9 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                             res = new byte[]{(byte) 0x00};
                             Log.e("ProtocolModifierImpl", "Extension protocol failed");
                         }
-                    } else{
+                    }
+                    else{
+                        // The card parses the transaction as well to recover the input to GEN_AC
                         new EmvParserJob(parser.getCard(), cardController.getSemaphore(),
                                 res, cardController.getAC(), activity,
                                 com.github.devnied.emvnfccard.R.raw.cardschemes_public_root_ca_keys).start();
@@ -164,12 +167,16 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                  * Extention protocol
                  * */
                 start = System.nanoTime();
+                Log.i("Timer", "RES:" + BytesUtils.bytesToStringNoSpace(res));
                 // Track AID
                 String aid = BytesUtils.bytesToStringNoSpace(TlvUtil.getValue(res, EmvTags.DEDICATED_FILE_NAME));
                 parser.getCard().setAid(aid);
 
                 break;
         }
+        Long end_parse = System.nanoTime();
+        Log.i("Timer", "[MOD]\t" + "Time: " + ((float)(end_parse - start_parse)/1000000) + command);
+
         return res;
     }
 

@@ -29,14 +29,13 @@ public class CommandDispatcherImpl extends Channel implements ch.ethz.nfcrelay.n
     @Override
     public void dispatch(EMVraceApduService hostApduService, String ip, int port, byte[] cmd, boolean isPPSECmd, MainActivity activity) {
         try {
-            if (isExtensionCommand(cmd)){
-                Log.i("Dispatcher", "Extension command: " + Util.bytesToHex(cmd));
-                this.cmd = cmd;
-                this.hostApduService = hostApduService;
-                new Thread(() -> {
-                    this.notifyAllListeners(EVT_CMD, null, null);
-                }).start();
-            }else{
+            Log.i("Dispatcher", "Extension command: " + Util.bytesToHex(cmd));
+            this.cmd = cmd;
+            this.hostApduService = hostApduService;
+            new Thread(() -> {
+                this.notifyAllListeners(EVT_CMD, null, null);
+            }).start();
+            if (!isExtensionCommand(cmd)){
                 Log.i("Dispatcher", "EMV command: " + Util.bytesToHex(cmd));
                 ResponseResolver responseResolver = new ResponseResolver(hostApduService, ip, port,
                         cmd, false, null, modifier);

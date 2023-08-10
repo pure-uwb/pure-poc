@@ -199,8 +199,8 @@ public class ProtocolExecutor {
     }
 
     public byte[] programKey(Session session) {
-        if (session.getState() != StateMachine.State.RANGE){
-            throw new RuntimeException("Range state accessed in " + stateToString(StateMachine.State.RANGE));
+        if (session.getState().compareTo(StateMachine.State.RANGE) < 0){
+            throw new RuntimeException("Range state accessed in " + stateToString(session.getState()));
         }
         return session.getSecret();
     }

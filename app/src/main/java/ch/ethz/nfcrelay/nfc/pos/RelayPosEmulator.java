@@ -46,6 +46,14 @@ public class RelayPosEmulator extends Thread {
         total_time_start = null;
         total_time_finish = null;
         summed = 0L;
+        /* NOTE on Timings
+        * Timings collects the times needed for each ping pong.
+        * The GPO ping-pong contains also the DH .
+        * The GEN AC ping-pong contains also the additional signature.
+        * Timings mod collects the time needed to execute the modification.
+        * The timings_mod for GPO and GEN_AC account for the DH and the additional signature
+        * */
+
         timings = new LinkedList<>();
         timingsMod = new LinkedList<>();
     }

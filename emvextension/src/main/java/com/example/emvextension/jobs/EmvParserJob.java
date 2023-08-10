@@ -61,7 +61,6 @@ public class EmvParserJob extends Thread {
         if(ACBytes == null){
             throw new RuntimeException("Could not retrieve AC");
         }
-
         AC.setAC(ACBytes);
         s.release();
         Long stop = System.nanoTime();
@@ -84,10 +83,12 @@ public class EmvParserJob extends Thread {
             }
             if (notEmpty(card.getIssuerPublicKeyCertificate()) &&
                     notEmpty(card.getIssuerPublicKeyExponent())) {
+                Log.i(this.getName(), "Issuer certificate");
                 final IssuerIccPublicKey issuerKey = keyReader.parseIssuerPublicKey(caKey, card.getIssuerPublicKeyCertificate(),
                         card.getIssuerPublicKeyRemainder(), card.getIssuerPublicKeyExponent());
                 if (notEmpty(card.getIccPublicKeyCertificate()) &&
                         notEmpty(card.getIccPublicKeyExponent())) {
+                    Log.i(this.getName(), "Card certificate");
                     final EmvPublicKey iccKey = keyReader.parseIccPublicKey(issuerKey, card.getIccPublicKeyCertificate(),
                             card.getIccPublicKeyRemainder(), card.getIccPublicKeyExponent());
                     //TODO: Decrypt SDAD and getAC

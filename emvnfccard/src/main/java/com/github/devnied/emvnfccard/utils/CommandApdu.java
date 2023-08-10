@@ -109,6 +109,12 @@ public class CommandApdu {
 		if (command == null || command.length < 4){
 			throw new EmvParsingException("Command should contain at least 4 byes");
 		}
-		return CommandEnum.getEnum((Arrays.copyOfRange(command, 0, 4)));
+		CommandEnum commandEnum = CommandEnum.getEnum((Arrays.copyOfRange(command, 0, 4)));
+		if(commandEnum == null){
+			command[2] = 0x00;
+			command[3] = 0x00;
+			commandEnum = CommandEnum.getEnum((Arrays.copyOfRange(command, 0, 4)));
+		}
+		return commandEnum;
 	}
 }

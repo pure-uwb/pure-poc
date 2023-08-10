@@ -27,6 +27,8 @@ public class CardController extends PaymentController{
     private static CardController controller = null;
     private static boolean initialized = false;
     private Semaphore uwbSemaphore;
+    private Boolean writeKey;
+
     public static CardController getInstance(Channel emvChannel, Channel boardChannel, ProtocolExecutor protocol){
         if(controller == null){
             controller = new CardController(emvChannel, boardChannel, protocol);
@@ -38,6 +40,7 @@ public class CardController extends PaymentController{
         super(emvChannel, boardChannel, protocol);
         emvChannel.addPropertyChangeListener(this::handleEmvEvent);
         boardChannel.addPropertyChangeListener(this::handleBoardEvent);
+        writeKey = false;
     }
 
     private long start;
@@ -53,8 +56,29 @@ public class CardController extends PaymentController{
             } catch (EmvParsingException e) {
                 throw new RuntimeException(e);
             }
+            if(command == null){
+                Log.e(TAG, "Command not recognized");
+                return;
+            }
             switch (command) {
+                case READ_RECORD:
+                    if(writeKey){
+                        // On the first RR write key to board.
+                        writeKey = false;
+                        start = System.nanoTime();
+                        byte [] key = protocol.programKey(paymentSession);
+                        Log.i("CardController", "Write key to board: " + bin2hex(key));
+                        //key = new byte[]{(byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A',
+                        //                (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A'};
+                        try{
+                            boardChannel.write(key);
+                        }catch (Exception e){
+                            Log.e("Controller", "UART FAIL" + e);
+                        }
+                    }
+                    break;
                 case EXT_CL_HELLO:
+                    writeKey = true; // Ranging done, allow new key to be written to the board.
                     PropertyChangeListener[] listeners = paymentSession.getListeners();
                     paymentSession = new Session(new CardStateMachine());
                     for (PropertyChangeListener l :listeners) {
@@ -69,16 +93,6 @@ public class CardController extends PaymentController{
                     Log.i("CardController", "permits: " + s.availablePermits());
                     Log.i("CardController", "Semaphore hashcode: " + s.toString());
                     uwbSemaphore = new Semaphore(0);
-                    start = System.nanoTime();
-                    byte [] key = protocol.programKey(paymentSession);
-                    Log.i("CardController", "Write key to board: " + bin2hex(key));
-                    //key = new byte[]{(byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A',
-                    //                (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A'};
-                    try{
-                        boardChannel.write(key);
-                    }catch (Exception e){
-                        Log.e("Controller", "UART FAIL" + e);
-                    }
                     break;
                 case EXT_SIGN:
                     try {
@@ -95,7 +109,7 @@ public class CardController extends PaymentController{
                     paymentSession.step();
                     break;
                 default:
-                    throw new RuntimeException("Command not found");
+                    Log.w(TAG, "Command not found" + command);
             }
         }
     }
