@@ -29,8 +29,7 @@ public class CommandDispatcherImpl extends Channel implements ch.ethz.nfcrelay.n
     @Override
     public void dispatch(EMVraceApduService hostApduService, String ip, int port, byte[] cmd, boolean isPPSECmd, MainActivity activity) {
         try {
-            Log.i("Dispatcher", "Extension command: " + Util.bytesToHex(cmd));
-            this.cmd = cmd;
+            this.cmd = Arrays.copyOf(cmd, cmd.length);
             this.hostApduService = hostApduService;
             new Thread(() -> {
                 this.notifyAllListeners(EVT_CMD, null, null);

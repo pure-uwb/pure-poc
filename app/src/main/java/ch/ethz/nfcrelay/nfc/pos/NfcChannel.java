@@ -28,9 +28,6 @@ public class NfcChannel extends Channel {
             response = tag.transceive(payload);
             Long stop = System.nanoTime();
             Log.i("Timer", "[EXT]\tTime: " + ((float)(stop - start)/1000000) +"\t Cmd_len:" + payload.length +  "\tResp_len: "+ response.length);
-
-
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
