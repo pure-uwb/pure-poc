@@ -9,7 +9,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="592dp"
         tools:context=".ui.MainActivity"
         tools:showIn="@layout/activity_main">
 
@@ -77,6 +77,44 @@
         android:layout_gravity="bottom"
         android:layout_margin="16dp"
         android:src="@drawable/baseline_euro_24" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
+        android:layout_width="match_parent"
+        android:layout_height="130dp"
+        android:layout_gravity="bottom">
+
+        <ImageView
+            android:id="@+id/success_icon"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:layout_gravity="bottom"
+            android:visibility="invisible"
+            app:layout_anchor="@+id/constraintLayout"
+            app:layout_anchorGravity="bottom"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.498"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.266"
+            app:srcCompat="@drawable/checked" />
+
+        <TextView
+            android:id="@+id/distance"
+            android:layout_width="107dp"
+            android:layout_height="38dp"
+            android:textAlignment="textEnd"
+            android:textColor="@android:color/white"
+            app:layout_anchor="@+id/constraintLayout"
+            app:layout_anchorGravity="bottom|center"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/success_icon" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

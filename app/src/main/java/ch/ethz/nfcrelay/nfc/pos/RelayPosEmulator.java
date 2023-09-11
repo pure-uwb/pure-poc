@@ -156,7 +156,7 @@ public class RelayPosEmulator extends Thread {
             Log.i("Timer", "[TOT]\t" + "Time: " + ((float)(total_time_finish - total_time_start)/1000000));
             Log.i("Timer", "[SUM]\t" + "Time: " + ((float)(summed)/1000000));
             Log.i("Timer", "#############################################################################");
-            saveTimings();
+            //saveTimings();
         } catch (Exception e) {
             activity.showErrorOrWarning(e, true);
         }

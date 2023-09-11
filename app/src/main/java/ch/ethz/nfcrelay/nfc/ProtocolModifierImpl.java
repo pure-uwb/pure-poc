@@ -97,6 +97,9 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                 // If EXTENSION_PROTOCOL is NOT set, then we are the card and we have to set it to
                 // communicate to the reader that we are capable of executing ranging.
                 byte[] aip = TlvUtil.getValue(res, EmvTags.APPLICATION_INTERCHANGE_PROFILE);
+                if (aip == null){
+                    Log.e(TAG, "Failed to find AIP in\n " + BytesUtils.bytesToString(res));
+                }
 
                 if (isReader) {
                     executeExtension = ((aip[1] & EXTENSION_PROTOCOL_AIP_MASK) > 0);
@@ -117,6 +120,7 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                         readerController.initialize(s, AC, new Session(new ReaderStateMachine()));
                         readerController.registerSessionListener(new Timer(new ReaderStateMachine()));
                         readerController.registerSessionListener(this);
+                        readerController.registerSessionListener((PropertyChangeListener) activity);
                         readerController.start();
                     } else {
                         cardController = CardController.getInstance(nfcChannel,

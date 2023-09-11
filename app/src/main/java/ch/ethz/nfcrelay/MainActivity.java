@@ -32,6 +32,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -50,6 +51,8 @@ import com.google.android.material.snackbar.Snackbar;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -71,7 +74,7 @@ import ch.ethz.nfcrelay.nfc.card.hce.EMVraceApduService;
 import ch.ethz.nfcrelay.nfc.pos.NfcChannel;
 import ch.ethz.nfcrelay.nfc.pos.RelayPosEmulator;
 
-public class MainActivity extends AppCompatActivity implements NfcAdapter.ReaderCallback {
+public class MainActivity extends AppCompatActivity implements NfcAdapter.ReaderCallback, PropertyChangeListener {
 
     private static final String[][] NFC_TECH_FILTER = new String[][]{new String[]{IsoDep.class.getName(), NfcA.class.getName(), NfcB.class.getName()}};
     private static final IntentFilter[] INTENT_FILTERS = new IntentFilter[]{new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED), new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED)};
@@ -99,6 +102,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     private CharSequence logBackup = "";
     private FloatingActionButton fabPay;
     private List<Thread> threadList = new LinkedList<>();
+    private ImageView successIcon;
+    private TextView distanceTxt;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,6 +114,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         tvStatus = findViewById(R.id.tvStatus);
         tvIP = findViewById(R.id.tvIP);
         tvLog = findViewById(R.id.tvLog);
+        successIcon = findViewById(R.id.success_icon);
+        distanceTxt = findViewById(R.id.distance);
         tvLog.setMovementMethod(new ScrollingMovementMethod());
         fabCard = findViewById(R.id.fabCard);
         fabSave = findViewById(R.id.fabSave);
@@ -377,7 +385,12 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             }
             // NOTE: set number_of_tests to 1 to have a single transaction on every new discovered tag
             for (int i = 0; i < number_of_tests; i++) {
-                runOnUiThread(() -> tvLog.setText(""));
+                runOnUiThread(() -> {
+                    tvLog.setText("");
+                    distanceTxt.setText("");
+                    successIcon.setVisibility(View.INVISIBLE);
+
+                });
                 try {
                     serverSocket.close();
                     serverSocket = new ServerSocket(PORT_READER_TO_BACKEND);
@@ -413,5 +426,26 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 threadList = newThreadList;
             }
         }
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        Log.i("MainActivity", "Evt: " + evt.getPropertyName() +"\t" + evt.getNewValue() );
+
+
+        runOnUiThread(() ->{
+            if((evt.getPropertyName().equals("success"))){
+                if((boolean)evt.getNewValue()){
+                    successIcon.setImageResource(R.drawable.checked);
+                } else {
+                    successIcon.setImageResource(R.drawable.cancel);
+                }
+                successIcon.setVisibility(View.VISIBLE);
+            }
+
+            if(evt.getPropertyName().equals("distance")){
+                distanceTxt.setText((String) evt.getNewValue());
+            }
+        });
     }
 }
