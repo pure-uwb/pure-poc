@@ -2,7 +2,6 @@ package com.example.emvextension.controller;
 
 import com.example.emvextension.channel.Channel;
 import com.example.emvextension.protocol.ApplicationCryptogram;
-import com.example.emvextension.protocol.CardStateMachine;
 import com.example.emvextension.protocol.ProtocolExecutor;
 import com.example.emvextension.protocol.Session;
 
@@ -15,11 +14,11 @@ public abstract class PaymentController{
     protected Session paymentSession;
 
     protected ProtocolExecutor protocol;
-    protected Semaphore s;
+    protected Semaphore parsingSemaphore;
     protected ApplicationCryptogram AC;
 
     public Semaphore getSemaphore() {
-        return s;
+        return parsingSemaphore;
     }
 
     public ApplicationCryptogram getAC() {
@@ -33,8 +32,8 @@ public abstract class PaymentController{
 
     }
 
-    public void initialize(Semaphore s, ApplicationCryptogram AC, Session session){
-        this.s = s;
+    public void initialize(Semaphore parsingSemaphore, ApplicationCryptogram AC, Session session){
+        this.parsingSemaphore = parsingSemaphore;
         this.AC = AC;
         paymentSession = session;
     }

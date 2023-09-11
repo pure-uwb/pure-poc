@@ -4,6 +4,7 @@ import android.content.Context;
 import android.nfc.tech.IsoDep;
 import android.util.Log;
 
+import com.example.emvextension.controller.ReaderController;
 import com.example.emvextension.protocol.ProtocolModifier;
 
 import java.io.ByteArrayOutputStream;
@@ -33,7 +34,7 @@ public class RelayPosEmulator extends Thread {
     private Long total_time_finish;
     private Long summed;
     private final static List<String> commands = Arrays.asList("SEL1", "SEL2", "GPO", "RR1", "RR2", "RR3", "RR4", "GEN_AC",
-                                                                "SEL1_MOD", "SEL2_MOD", "GPO_MOD", "RR1_MOD", "RR2_MOD", "RR3_MOD", "RR4_MOD", "GEN_AC_MOD");
+                                                                "SEL1_MOD", "SEL2_MOD", "GPO_MOD", "RR1_MOD", "RR2_MOD", "RR3_MOD", "RR4_MOD", "GEN_AC_MOD", "RANGING");
     private List<String> timings;
     private List<String> timingsMod;
 
@@ -176,6 +177,7 @@ public class RelayPosEmulator extends Thread {
             fos.write(String.join(",", timings).getBytes());
             fos.write(",".getBytes());
             fos.write(String.join(",", timingsMod).getBytes());
+            fos.write(String.format(",%.2f", ReaderController.ranging_time).getBytes());
             fos.write("\n".getBytes());
         } catch (IOException e) {
             throw new RuntimeException(e);

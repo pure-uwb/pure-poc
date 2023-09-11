@@ -1,7 +1,6 @@
 package com.example.emvextension.controller;
 
 import static com.example.emvextension.Apdu.HexUtils.bin2hex;
-import static com.example.emvextension.Apdu.UtilsAPDU.INS_WRITE;
 
 import static com.example.emvextension.utils.Constants.EVT_CMD;
 import static com.github.devnied.emvnfccard.utils.CommandApdu.getCommandEnum;
@@ -9,7 +8,6 @@ import static com.github.devnied.emvnfccard.utils.CommandApdu.getCommandEnum;
 import android.util.Log;
 
 import com.example.emvextension.channel.Channel;
-import com.example.emvextension.protocol.ApplicationCryptogram;
 import com.example.emvextension.protocol.CardStateMachine;
 import com.example.emvextension.protocol.ProtocolExecutor;
 import com.example.emvextension.protocol.Session;
@@ -90,13 +88,13 @@ public class CardController extends PaymentController{
                     paymentSession.step();
                     emvChannel.write(protocol.createCardHello(paymentSession));
                     paymentSession.step();
-                    Log.i("CardController", "permits: " + s.availablePermits());
-                    Log.i("CardController", "Semaphore hashcode: " + s.toString());
+                    Log.i("CardController", "permits: " + parsingSemaphore.availablePermits());
+                    Log.i("CardController", "Semaphore hashcode: " + parsingSemaphore.toString());
                     uwbSemaphore = new Semaphore(0);
                     break;
                 case EXT_SIGN:
                     try {
-                        s.acquire();
+                        parsingSemaphore.acquire();
                         uwbSemaphore.acquire();
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);

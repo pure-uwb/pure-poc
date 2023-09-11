@@ -1,8 +1,10 @@
 #ids=$(adb devices -l | tail -n +2 | cut -d ":" -f 5)
 #while true; do
-ids="10 24 275"
+ids="21"
 for id in $ids; do
 	echo $id
 	adb -t $id shell svc nfc disable
 	adb -t $id shell svc nfc enable
-done	
+	sleep 1
+#done
+done

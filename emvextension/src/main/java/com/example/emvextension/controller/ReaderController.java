@@ -3,8 +3,11 @@ package com.example.emvextension.controller;
 
 import static com.example.emvextension.Apdu.HexUtils.bin2hex;
 
+import android.app.Activity;
 import android.util.Log;
 
+import com.example.emvextension.Crypto;
+import com.example.emvextension.R;
 import com.example.emvextension.channel.Channel;
 import com.example.emvextension.protocol.ApplicationCryptogram;
 import com.example.emvextension.protocol.ProtocolExecutor;
@@ -13,36 +16,57 @@ import com.example.emvextension.protocol.Session;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.interfaces.RSAPublicKey;
 import java.util.concurrent.Semaphore;
 
 import fr.devnied.bitlib.BytesUtils;
 
 public class ReaderController extends PaymentController {
     private static ReaderController controller = null;
-    public static ReaderController getInstance(Channel emvChannel, Channel boardChannel, ProtocolExecutor protocol){
+    public static ReaderController getInstance(Channel emvChannel, Channel boardChannel, ProtocolExecutor protocol, Activity activity){
         if(controller == null){
             controller = new ReaderController(emvChannel, boardChannel, protocol);
+            loadSecondaryKey(activity);
         }
+
+
         return controller;
+    }
+
+    private static void loadSecondaryKey(Activity activity){
+        byte[] cert;
+        try (InputStream inputStream = activity.getResources().openRawResource(R.raw.certificate)) {
+            cert = Crypto.loadCertificate(inputStream);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        try (InputStream inputStream = activity.getResources().openRawResource(R.raw.ca_pubkey)) {
+            RSAPublicKey caPublicKey = Crypto.loadPublicKey(inputStream);
+            secondaryPublicKey = Crypto.getPublicKeyFromCertificate(cert, caPublicKey);}
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private ReaderController(Channel emvChannel, Channel boardChannel, ProtocolExecutor protocol) {
         super(emvChannel, boardChannel, protocol);
         boardChannel.addPropertyChangeListener(this::handleBoardEvent);
     }
-
-    private Long start;
-    private Long stop;
+    private static RSAPublicKey secondaryPublicKey;
+    private Long start_uwb;
+    private Long stop_uwb;
+    public static float ranging_time;
     private StringBuilder protocolLog = new StringBuilder();
-
     private void log(byte [] cmd, byte[] res){
         protocolLog.append("[C-APDU] ").append(BytesUtils.bytesToStringNoSpace(cmd)).append("\n");
         protocolLog.append("[R-APDU] ").append(BytesUtils.bytesToStringNoSpace(res)).append("\n");
     }
 
     @Override
-    public void initialize(Semaphore s, ApplicationCryptogram AC, Session session){
-        super.initialize(s, AC, session);
+    public void initialize(Semaphore parsingSemaphore, ApplicationCryptogram AC, Session session){
+        super.initialize(parsingSemaphore, AC, session);
         protocolLog = new StringBuilder();
     }
 
@@ -53,9 +77,11 @@ public class ReaderController extends PaymentController {
         byte [] res;
         PropertyChangeListener[] listeners = paymentSession.getListeners();
         paymentSession = new Session(new ReaderStateMachine());
+
         for (PropertyChangeListener l :listeners) {
             paymentSession.addPropertyChangeListener(l);
         }
+        paymentSession.setSecondaryKey(secondaryPublicKey);
         protocol.init(paymentSession);
         paymentSession.step();
         byte [] hello = protocol.createReaderHello(paymentSession);
@@ -66,7 +92,7 @@ public class ReaderController extends PaymentController {
         new Thread(()->{
             protocol.parseCardHello(res, paymentSession);
             paymentSession.step();
-            start = System.nanoTime();
+            start_uwb = System.nanoTime();
             byte [] key = protocol.programKey(paymentSession);
             Log.i("ReaderController", "Write key to board: " + bin2hex(key));
             boardChannel.write(key);
@@ -76,23 +102,27 @@ public class ReaderController extends PaymentController {
     private void handleBoardEvent(PropertyChangeEvent evt){
         Log.i("ReaderController", "Event: "+ evt.getPropertyName());
         protocol.parseTimingReport((byte[]) evt.getNewValue(), paymentSession);
-        stop = System.nanoTime();
+        stop_uwb = System.nanoTime();
+        ranging_time = ((float)(stop_uwb-start_uwb))/1000000;
         paymentSession.step();
-        Log.i("ReaderController", "Ranging time" +  ((float)(stop-start))/1000000 );
+        Log.i("ReaderController", "Ranging time" +  ranging_time);
+    }
+
+    public void authenticate(){
+        paymentSession.step();
+        byte [] cmd = protocol.getSignatureCommand();
+        emvChannel.write(cmd);
+        byte [] res = emvChannel.read();
+        log(cmd, res);
         try {
             Long start = System.nanoTime();
-            s.acquire();
+            parsingSemaphore.acquire();
             Long stop = System.nanoTime();
             Log.i("Timer", "[SEM]\t" + "Time: " + ((float)(stop - start)/1000000));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        paymentSession.step();
         paymentSession.setAC(AC.getAC());
-        byte [] cmd = protocol.getSignatureCommand();
-        emvChannel.write(cmd);
-        byte [] res = emvChannel.read();
-        log(cmd, res);
         protocol.verifySignature(res, paymentSession);
         paymentSession.step();
         protocol.finish(paymentSession);

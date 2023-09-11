@@ -14,6 +14,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.interfaces.RSAPublicKey;
 import java.security.spec.ECGenParameterSpec;
 
 public class Session  implements PropertyChangeObservable {
@@ -33,6 +34,7 @@ public class Session  implements PropertyChangeObservable {
     private byte[] tagKey;
     private boolean signVerif;
     private byte[] AC;
+    private RSAPublicKey secondaryKey;
 
     public Session(StateMachine stateMachine) {
 
@@ -198,5 +200,12 @@ public class Session  implements PropertyChangeObservable {
 
     public void setAC(byte[] ac) {
         this.AC = ac;
+    }
+    
+    public void setSecondaryKey(RSAPublicKey key){
+        this.secondaryKey = key;
+    }
+    public RSAPublicKey getSecondaryKey(){
+        return secondaryKey;
     }
 }

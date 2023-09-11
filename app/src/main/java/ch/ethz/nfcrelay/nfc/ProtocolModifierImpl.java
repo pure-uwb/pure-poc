@@ -113,7 +113,7 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                     if (isReader) {
                         readerController = ReaderController.getInstance(nfcChannel,
                                 Provider.getUartChannel(activity),
-                                new ProtocolExecutor(new ApduWrapperReader(), activity));
+                                new ProtocolExecutor(new ApduWrapperReader(), activity), activity);
                         readerController.initialize(s, AC, new Session(new ReaderStateMachine()));
                         readerController.registerSessionListener(new Timer(new ReaderStateMachine()));
                         readerController.registerSessionListener(this);
@@ -140,6 +140,7 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                         new EmvParserJob(parser.getCard(), readerController.getSemaphore(),
                                 res, readerController.getAC(), activity,
                                 com.github.devnied.emvnfccard.R.raw.cardschemes_public_root_ca_keys).start();
+                        readerController.authenticate();
                         try {
                             semaphore.acquire();
                         } catch (InterruptedException e) {
