@@ -83,7 +83,7 @@ public class ResponseResolver extends Thread {
             socket.close();
 
         } catch (Exception e) {
-            Log.e(this.getName(), e.toString());
+             Log.e(this.getName(), e.toString());
             activity.showErrorOrWarning(e, false);
         }
     }

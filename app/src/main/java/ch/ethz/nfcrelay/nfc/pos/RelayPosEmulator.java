@@ -72,6 +72,12 @@ public class RelayPosEmulator extends Thread {
                         //activity.showErrorOrWarning(e, true);
                     }
                 }
+                Log.i("Separate", "Kill thread");
+                try{
+                    activity.getServerSocket().close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 activity.updateStatus(activity.getString(R.string.waiting_for_card),
                         false);
             }).start();
