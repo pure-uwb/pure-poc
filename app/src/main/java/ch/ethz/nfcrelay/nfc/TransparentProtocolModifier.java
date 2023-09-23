@@ -48,7 +48,7 @@ public class TransparentProtocolModifier implements ProtocolModifier {
         CommandEnum command = getCommandEnum(cmdEnum);
         switch (command) {
             case GEN_AC:
-                isProtocolFinished = true;
+//                isProtocolFinished = true;
                 break;
         }
         return res;
