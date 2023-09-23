@@ -146,11 +146,11 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                                 com.github.devnied.emvnfccard.R.raw.cardschemes_public_root_ca_keys).start();
                         readerController.authenticate();
                         try {
+                            // Wait for extension to complete
                             semaphore.acquire();
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
-                        ((MainActivity) activity).appendToLog(readerController.getLog());
                         if (!readerController.isSuccess()) {
                             res = new byte[]{(byte) 0x00};
                             Log.e("ProtocolModifierImpl", "Extension protocol failed");
@@ -162,6 +162,8 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                                 res, cardController.getAC(), activity,
                                 com.github.devnied.emvnfccard.R.raw.cardschemes_public_root_ca_keys).start();
                     }
+                }else{
+                    ((MainActivity)activity).showSuccess(true);
                 }
                 Long stop = System.nanoTime();
                 Log.i("Timer", "Total transaction time: " + ((float)(stop - start)/1000000));

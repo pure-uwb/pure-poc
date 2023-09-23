@@ -25,6 +25,8 @@ import fr.devnied.bitlib.BytesUtils;
 
 public class ReaderController extends PaymentController {
     private static ReaderController controller = null;
+    private static Activity activity;
+    public static final String LOG_EVT = "log_event";
     public static ReaderController getInstance(Channel emvChannel, Channel boardChannel, ProtocolExecutor protocol, Activity activity){
         if(controller == null){
             controller = new ReaderController(emvChannel, boardChannel, protocol);
@@ -60,8 +62,9 @@ public class ReaderController extends PaymentController {
     public static float ranging_time;
     private StringBuilder protocolLog = new StringBuilder();
     private void log(byte [] cmd, byte[] res){
-        protocolLog.append("[C-APDU] ").append(BytesUtils.bytesToStringNoSpace(cmd)).append("\n");
-        protocolLog.append("[R-APDU] ").append(BytesUtils.bytesToStringNoSpace(res)).append("\n");
+        paymentSession.notifyAllListeners(LOG_EVT,
+                            "[C-APDU] " + BytesUtils.bytesToStringNoSpace(cmd),
+                            "[R-APDU] " + BytesUtils.bytesToStringNoSpace(res));
     }
 
     @Override
@@ -109,6 +112,7 @@ public class ReaderController extends PaymentController {
     }
 
     public void authenticate(){
+        Log.i("ReaderController", "Authenticate");
         paymentSession.step();
         byte [] cmd = protocol.getSignatureCommand();
         emvChannel.write(cmd);

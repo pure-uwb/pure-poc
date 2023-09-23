@@ -21,9 +21,11 @@ public class CommandDispatcherImpl extends Channel implements ch.ethz.nfcrelay.n
     byte [] cmd;
     EMVraceApduService hostApduService;
     ProtocolModifier modifier;
+    boolean transparentRelay;
 
-    public CommandDispatcherImpl(ProtocolModifier modifier) {
+    public CommandDispatcherImpl(ProtocolModifier modifier, boolean transparentRelay) {
         this.modifier = modifier;
+        this.transparentRelay = transparentRelay;
     }
 
     @Override
@@ -34,7 +36,7 @@ public class CommandDispatcherImpl extends Channel implements ch.ethz.nfcrelay.n
             new Thread(() -> {
                 this.notifyAllListeners(EVT_CMD, null, null);
             }).start();
-            if (!isExtensionCommand(cmd)){
+            if (!isExtensionCommand(cmd)  || transparentRelay){
                 Log.i("Dispatcher", "EMV command: " + Util.bytesToHex(cmd));
                 ResponseResolver responseResolver = new ResponseResolver(hostApduService, ip, port,
                         cmd, false, null, modifier);

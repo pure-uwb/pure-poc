@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">NFC Relay</string>
+    <string name="app_name">EMV-UWB</string>
     <string name="pos_emulator">POS emulator</string>
     <string name="card_emulator">Card emulator</string>
 

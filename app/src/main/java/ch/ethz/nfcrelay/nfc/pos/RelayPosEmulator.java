@@ -127,6 +127,9 @@ public class RelayPosEmulator extends Thread {
                 byte[] resp = tagComm.transceive(cmd);
                 //refresh GUI with response
 
+                activity.appendToLog("[R-APDU] " + Util.bytesToHex(resp));
+                Log.i(this.getName(), "[R-APDU] " + Util.bytesToHex(resp));
+
                 // HERE ON gen_ac_command do:
                 // 1. extract AC
                 // 2. execute extension protocol
@@ -134,9 +137,6 @@ public class RelayPosEmulator extends Thread {
                 Long start_modifier = System.nanoTime();
                 resp = modifier.parse(cmd, resp);
                 Long end_modifier = System.nanoTime();
-
-                activity.appendToLog("[R-APDU] " + Util.bytesToHex(resp));
-                Log.i(this.getName(), "[R-APDU] " + Util.bytesToHex(resp));
 
                 //write APDU response into the mSocket
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());

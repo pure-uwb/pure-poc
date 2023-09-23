@@ -20,6 +20,7 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import java.util.List;
 
+import ch.ethz.nfcrelay.nfc.BuildSettings;
 import ch.ethz.nfcrelay.nfc.ProtocolModifierImpl;
 
 import ch.ethz.nfcrelay.nfc.Util;
@@ -41,7 +42,7 @@ public class CardActivity extends AppCompatActivity {
 
         EMVraceApduService.cardActivity = this;
         ProtocolModifier protocolModifier = Provider.getModifier(this,false);
-        CommandDispatcherImpl dispatcher =  new CommandDispatcherImpl(protocolModifier);
+        CommandDispatcherImpl dispatcher =  new CommandDispatcherImpl(protocolModifier, BuildSettings.transparentRelay);
         EMVraceApduService.dispatcher = dispatcher;
         protocolModifier.setNfcChannel(dispatcher);
         ivOK = findViewById(R.id.ivOK);

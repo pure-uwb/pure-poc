@@ -84,7 +84,7 @@ public class ResponseResolver extends Thread {
 
         } catch (Exception e) {
              Log.e(this.getName(), e.toString());
-            activity.showErrorOrWarning(e, false);
+            //activity.showErrorOrWarning(e, false);
         }
     }
 }

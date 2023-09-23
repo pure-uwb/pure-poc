@@ -2,6 +2,7 @@ package ch.ethz.nfcrelay;
 
 import static android.nfc.NfcAdapter.FLAG_READER_NFC_A;
 import static android.nfc.NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK;
+import static com.example.emvextension.controller.ReaderController.LOG_EVT;
 import static ch.ethz.nfcrelay.nfc.BuildSettings.mockBackend;
 import static ch.ethz.nfcrelay.nfc.BuildSettings.mockUart;
 import static ch.ethz.nfcrelay.nfc.BuildSettings.number_of_tests;
@@ -104,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     private List<Thread> threadList = new LinkedList<>();
     private ImageView successIcon;
     private TextView distanceTxt;
+    private boolean cardStarted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -270,28 +272,34 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
 
     public void tryToStartCardEmulator() {
-        try {
-            if (mockBackend) {
-                EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercard_gold_to_selecta));
-                Thread cardBackend = CardBackend.getInstance(PORT, emvTrace);
-                cardBackend.start();
-                Log.i("MainActivity", "Started mock card backend");
-                ip = getLocalIpAddress();
-            }
-            CardEmulation cardEmulation = CardEmulation.getInstance(NfcAdapter.getDefaultAdapter(this));
-            ComponentName cmpName = new ComponentName(this, EMVraceApduService.class);
-            //check that our APDU service is active
-            if (!cardEmulation.isDefaultServiceForCategory(cmpName, CardEmulation.CATEGORY_PAYMENT)) {
-                Snackbar.make(findViewById(R.id.layout_main), R.string.service_not_active, Snackbar.LENGTH_SHORT).setAction(R.string.enable, view -> startActivity(new Intent(Settings.ACTION_NFC_PAYMENT_SETTINGS)))
+            try {
+                if (!cardStarted) {
+                    cardStarted = true;
+                    if (mockBackend) {
+                        EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercard_gold_to_selecta));
+                        Thread cardBackend = CardBackend.getInstance(PORT, emvTrace);
+                        if (!cardBackend.isAlive()) {
+                            cardBackend.start();
+                        }
+                        Log.i("MainActivity", "Started mock card backend");
+                        ip = getLocalIpAddress();
+                    }
+                }
+                CardEmulation cardEmulation = CardEmulation.getInstance(NfcAdapter.getDefaultAdapter(this));
+                ComponentName cmpName = new ComponentName(this, EMVraceApduService.class);
 
-                        .show();
-            } else {
-                Log.i(this.getClass().getName(), "Start card emulator");
-                startCardEmulator();
+                //check that our APDU service is active
+                if (!cardEmulation.isDefaultServiceForCategory(cmpName, CardEmulation.CATEGORY_PAYMENT)) {
+                    Snackbar.make(findViewById(R.id.layout_main), R.string.service_not_active, Snackbar.LENGTH_SHORT).setAction(R.string.enable, view -> startActivity(new Intent(Settings.ACTION_NFC_PAYMENT_SETTINGS)))
+
+                            .show();
+                } else {
+                    Log.i(this.getClass().getName(), "Start card emulator");
+                    startCardEmulator();
+                }
+                } catch(Exception e){
+                    showErrorOrWarning(e, true);
             }
-        } catch (Exception e) {
-            showErrorOrWarning(e, true);
-        }
     }
 
     public void startCardEmulator() {
@@ -428,24 +436,39 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         }
     }
 
+    public void showSuccess(boolean success){
+        runOnUiThread(() ->{
+            if(success){
+                successIcon.setImageResource(R.drawable.checked);
+            } else {
+                successIcon.setImageResource(R.drawable.cancel);
+            }
+            successIcon.setVisibility(View.VISIBLE);
+        });
+    }
+
+    public void showDistance(String distance){
+        runOnUiThread(() ->{
+            distanceTxt.setText(distance);
+        });
+
+    }
+
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         Log.i("MainActivity", "Evt: " + evt.getPropertyName() +"\t" + evt.getNewValue() );
+        if((evt.getPropertyName().equals("success"))){
+           this.showSuccess((boolean)evt.getNewValue());
+        }
 
+        if(evt.getPropertyName().equals("distance")){
+           this.showDistance((String) evt.getNewValue());
+        }
 
-        runOnUiThread(() ->{
-            if((evt.getPropertyName().equals("success"))){
-                if((boolean)evt.getNewValue()){
-                    successIcon.setImageResource(R.drawable.checked);
-                } else {
-                    successIcon.setImageResource(R.drawable.cancel);
-                }
-                successIcon.setVisibility(View.VISIBLE);
-            }
+        if(evt.getPropertyName().equals(LOG_EVT)){
+            this.appendToLog((String) evt.getOldValue());
+            this.appendToLog((String) evt.getNewValue());
 
-            if(evt.getPropertyName().equals("distance")){
-                distanceTxt.setText((String) evt.getNewValue());
-            }
-        });
+        }
     }
 }
