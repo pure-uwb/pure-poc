@@ -16,6 +16,9 @@ In the settings:
 
 On the reader the bottom right widget allows to copy the transaction transcript. You can use tools like [tlv utils](https://emvlab.org/tlvutils/) to parse single messages.
 
+## Timings
+The timings folder contains the dataset collected for 500 transactions with the standalone implementation (not yet published) and the integrated version (in this repository). The file process.py analyses the csv files and reports the timings in Table 2.
+
 ## Credits
 In emvnfccard we used code from  [android-emv-key-test](https://github.com/johnzweng/android-emv-key-test/tree/master) and  [EMV-NFC-Paycard-Enrollment
 Public](https://github.com/devnied/EMV-NFC-Paycard-Enrollment).
