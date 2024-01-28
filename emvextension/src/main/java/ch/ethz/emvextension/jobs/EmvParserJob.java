@@ -80,7 +80,6 @@ public class EmvParserJob extends Thread {
                     Log.i(this.getName(), "Card certificate");
                     final EmvPublicKey iccKey = keyReader.parseIccPublicKey(issuerKey, card.getIccPublicKeyCertificate(),
                             card.getIccPublicKeyRemainder(), card.getIccPublicKeyExponent());
-                    //TODO: Decrypt SDAD and getAC
                     byte [] sdad_rec = calculateRSA(sdad, iccKey.getPublicExponent(), iccKey.getModulus());
                     return Arrays.copyOfRange(sdad_rec, sdad_rec.length - 21, sdad_rec.length - 1); // Get the hash of the DYNAMICALLY SIGNED DATA
                 }

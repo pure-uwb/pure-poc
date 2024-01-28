@@ -1,4 +1,4 @@
-package ch.ethz.pure.mock;
+package ch.ethz.pure.prerecorded;
 
 import static ch.ethz.pure.nfc.Util.bytesToHex;
 

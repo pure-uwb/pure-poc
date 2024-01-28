@@ -3,9 +3,9 @@ package ch.ethz.pure;
 import static android.nfc.NfcAdapter.FLAG_READER_NFC_A;
 import static android.nfc.NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK;
 import static ch.ethz.emvextension.controller.ReaderController.LOG_EVT;
-import static ch.ethz.pure.nfc.BuildSettings.mockBackend;
 import static ch.ethz.pure.nfc.BuildSettings.mockUart;
 import static ch.ethz.pure.nfc.BuildSettings.number_of_tests;
+import static ch.ethz.pure.nfc.BuildSettings.prerecordedBackend;
 import static ch.ethz.pure.nfc.BuildSettings.transparentRelay;
 
 import android.app.PendingIntent;
@@ -46,7 +46,6 @@ import androidx.preference.CheckBoxPreference;
 import androidx.preference.PreferenceManager;
 
 import com.example.emvextension.BuildConfig;
-import ch.ethz.emvextension.protocol.ProtocolModifier;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
@@ -66,9 +65,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
-import ch.ethz.pure.mock.CardBackend;
-import ch.ethz.pure.mock.EmvTrace;
-import ch.ethz.pure.mock.ReaderBackend;
+import ch.ethz.emvextension.protocol.ProtocolModifier;
+import ch.ethz.pure.prerecorded.CardBackend;
+import ch.ethz.pure.prerecorded.EmvTrace;
+import ch.ethz.pure.prerecorded.ReaderBackend;
 import ch.ethz.pure.nfc.card.hce.EMVraceApduService;
 import ch.ethz.pure.nfc.pos.NfcChannel;
 import ch.ethz.pure.nfc.pos.PosEmulator;
@@ -196,9 +196,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         isPOS = "pos".equals(prefs.getString("emulator", "pos"));//default emulator is POS
         ip = prefs.getString("ip", "0.0.0.0");
         mockUart = prefs.getBoolean("mock_uart", true);
-        mockBackend = prefs.getBoolean("mock_backend", false);
+        prerecordedBackend = prefs.getBoolean("mock_backend", false);
         transparentRelay = prefs.getBoolean("transparent_relay", false);
-        Log.i("MainActivity"," Settings: "  + mockUart + mockBackend + transparentRelay);
+        Log.i("MainActivity"," Settings: "  + mockUart + prerecordedBackend + transparentRelay);
         //refresh GUI accordingly
         if (isPOS) {
             setTitle(R.string.pos_emulator);
@@ -273,8 +273,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             try {
                 if (!cardStarted) {
                     cardStarted = true;
-                    if (mockBackend) {
-                        EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercard_gold_to_selecta));
+                    if (prerecordedBackend) {
+                        EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercard_transaction_prerec));
                         Thread cardBackend = CardBackend.getInstance(PORT, emvTrace);
                         if (!cardBackend.isAlive()) {
                             cardBackend.start();
@@ -414,8 +414,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                     Log.i("MainActivity", "Interrupt thread:" + thread);
                     thread.interrupt();
                 }
-                if (mockBackend) {
-                    EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercard_gold_to_selecta));
+                if (prerecordedBackend) {
+                    EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercard_transaction_prerec));
                     Log.i("MainActivity", "Reader Backend create");
                     t = new ReaderBackend(getLocalIpAddress(), PORT_READER_TO_BACKEND, emvTrace, readerSemaphore);
                     t.start();

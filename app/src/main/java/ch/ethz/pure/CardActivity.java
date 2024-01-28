@@ -14,14 +14,13 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.emvextension.BuildConfig;
-import ch.ethz.emvextension.protocol.ProtocolModifier;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import java.util.List;
 
+import ch.ethz.emvextension.protocol.ProtocolModifier;
 import ch.ethz.pure.nfc.BuildSettings;
-
 import ch.ethz.pure.nfc.Util;
 import ch.ethz.pure.nfc.card.hce.CommandDispatcherImpl;
 import ch.ethz.pure.nfc.card.hce.EMVraceApduService;

@@ -1,4 +1,4 @@
-package ch.ethz.pure.mock;
+package ch.ethz.pure.prerecorded;
 
 import java.io.BufferedReader;
 import java.io.IOException;

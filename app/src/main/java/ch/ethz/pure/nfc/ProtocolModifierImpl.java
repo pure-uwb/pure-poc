@@ -83,9 +83,6 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                 // Retrieve pks
                 break;
             case GPO:
-                /* TODO: Here the Terminal should set the PDOL so that the card knows if it supports
-                   Extension protocol*/
-
                 // Check AIP and modify it in res
                 // If EXTENSION_PROTOCOL is set we are the reader and we have to unset it before
                 // forwarding it to the backend.
@@ -165,9 +162,6 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                 isProtocolFinished = true;
                 break;
             case SELECT:
-                /*TODO: Add PDOL list so that the reader includes its capabilites regarding the
-                 * Extention protocol
-                 * */
                 start = System.nanoTime();
                 Log.i("Timer", "RES:" + BytesUtils.bytesToStringNoSpace(res));
                 // Track AID

@@ -110,7 +110,7 @@ public class PosEmulator extends Thread {
                 //refresh GUI with command
                 Log.i(this.getName(), "[C-APDU] " + Util.bytesToHex(cmd));
                 activity.appendToLog("[C-APDU] " + Util.bytesToHex(cmd));
-                
+
                 if(tagComm == null || !tagComm.isConnected()){
                     return;
                 }

@@ -1,4 +1,4 @@
-package ch.ethz.pure.mock;
+package ch.ethz.pure.prerecorded;
 
 import android.util.Log;
 
@@ -42,7 +42,6 @@ public class CardBackend extends Thread {
     public void run() {
         try {
             while (true) {
-                //waiting for connection with remote card emulator
                 Socket socket = serverSocket.accept();
                 //read APDU command from socket
                 DataInputStream in = new DataInputStream(socket.getInputStream());
