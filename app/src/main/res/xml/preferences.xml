@@ -30,14 +30,14 @@
     <CheckBoxPreference
         android:defaultValue="false"
         android:key="transparent_relay"
-        android:title="Transparent relay" />
+        android:title="Transparent" />
     <CheckBoxPreference
         android:defaultValue="true"
         android:key="mock_uart"
         android:title="Mock uart" />
     <CheckBoxPreference
         android:defaultValue="false"
-        android:key="mock_backend"
-        android:title="Mock backend" />
+        android:key="prerec_backend"
+        android:title="Prerecorded backend" />
 
 </PreferenceScreen>
