@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace 'com.github.devnied.emvnfccard'
+    compileSdk 33
+
+    defaultConfig {
+        minSdk 24
+        targetSdk 33
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
+    implementation 'com.github.devnied:bit-lib4j:1.5.0'
+    // commons, used by Julien Millau's EMV library code
+    implementation 'org.apache.commons:commons-lang3:3.6'
+    implementation 'org.apache.commons:commons-io:1.3.2'
+    implementation 'org.apache.commons:commons-collections4:4.1'
+    implementation 'org.slf4j:slf4j-android:1.7.7'
+    // use jackson for JSON
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.9.2'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.2'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.9.2'
+    // use lombok annotations
+    implementation 'org.projectlombok:lombok:1.16.18'
+}
