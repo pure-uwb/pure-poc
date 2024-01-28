@@ -10,9 +10,9 @@ The application can be build with gradle. If you want to build from source / mak
 Install the application on two android devices. In the settings (top right) set one phone to be a card and one to be a reader. For the card, you will have to enable the application to be a payment application.
 In the settings: 
 * transparent: enables or disables the UWB extension. You can use it to check the negotiation of the extension. For example, on the card device click on transparent to see that the transaction will still execute but without the extension.
-* prerecorded backend:
 * mock uart: in case you do not have two nrf52 boards and  Qorvo, select this option to still run the application and execute a transaction.
-  Instead of measuring the distance with uwb the reader mocks in software a measured distance. If mock uart is not set then the two uwb chip measure distance and report it back to the phones.
+  Instead of measuring the distance with uwb the reader mocks in software a measured distance. If mock uart is not set then the two uwb chips measure distance and report it back to the phones.
+* prerecorded backend: leave this option ticked to execute the application with a pre-recorded transaction. We may describe in the future how to use the app with live backend as described in the paper Appendix. 
 
 On the reader the bottom right widget allows to copy the transaction transcript. You can use tools like [tlv utils](https://emvlab.org/tlvutils/) to parse single messages.
 
