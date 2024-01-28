@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="ch.ethz.nfcrelay">
+    package="ch.ethz.pure">
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -25,12 +25,12 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.NFCRelay"
+        android:theme="@style/Theme.PURE"
         tools:targetApi="31">
 
         <!-- According to spec the exported tag must be set "true", originally set to "false" -->
         <service
-            android:name=".nfc.card.hce.EMVraceApduService"
+            android:name="ch.ethz.pure.nfc.card.hce.EMVraceApduService"
             android:exported="true"
             android:stopWithTask="true"
             android:permission="android.permission.BIND_NFC_SERVICE"
@@ -45,14 +45,14 @@
         </service>
 
         <activity
-            android:name=".CardActivity"
+            android:name="ch.ethz.pure.CardActivity"
             android:exported="false" />
         <activity
-            android:name=".SettingsActivity"
+            android:name="ch.ethz.pure.SettingsActivity"
             android:exported="false"
             android:label="@string/settings" />
         <activity
-            android:name=".MainActivity"
+            android:name="ch.ethz.pure.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -13,7 +13,7 @@ dependencyResolutionManagement {
         maven { url 'https://jitpack.io' }
     }
 }
-rootProject.name = "NFCRelay"
+rootProject.name = "PURE"
 include ':app'
 include ':emvnfccard'
 include ':emvextension'
