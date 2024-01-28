@@ -1,4 +1,4 @@
-package ch.ethz.pure.prerecorded;
+package ch.ethz.pure.backend;
 
 public class Constants {
     public static boolean isMock = true;

@@ -1,4 +1,4 @@
-package ch.ethz.pure.prerecorded;
+package ch.ethz.pure.backend;
 
 import static ch.ethz.pure.nfc.Util.bytesToHex;
 

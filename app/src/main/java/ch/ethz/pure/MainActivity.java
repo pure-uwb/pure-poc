@@ -66,9 +66,9 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import ch.ethz.emvextension.protocol.ProtocolModifier;
-import ch.ethz.pure.prerecorded.CardBackend;
-import ch.ethz.pure.prerecorded.EmvTrace;
-import ch.ethz.pure.prerecorded.ReaderBackend;
+import ch.ethz.pure.backend.CardBackend;
+import ch.ethz.pure.backend.EmvTrace;
+import ch.ethz.pure.backend.ReaderBackend;
 import ch.ethz.pure.nfc.card.hce.EMVraceApduService;
 import ch.ethz.pure.nfc.pos.NfcChannel;
 import ch.ethz.pure.nfc.pos.PosEmulator;

@@ -1,4 +1,4 @@
-package ch.ethz.pure.prerecorded;
+package ch.ethz.pure.backend;
 
 import java.io.BufferedReader;
 import java.io.IOException;
