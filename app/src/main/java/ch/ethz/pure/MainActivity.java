@@ -196,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         isPOS = "pos".equals(prefs.getString("emulator", "pos"));//default emulator is POS
         ip = prefs.getString("ip", "0.0.0.0");
         mockUart = prefs.getBoolean("mock_uart", true);
-        prerecordedBackend = prefs.getBoolean("mock_backend", false);
+        prerecordedBackend = prefs.getBoolean("prerec_backend", false);
         transparentRelay = prefs.getBoolean("transparent_relay", false);
         Log.i("MainActivity"," Settings: "  + mockUart + prerecordedBackend + transparentRelay);
         //refresh GUI accordingly
