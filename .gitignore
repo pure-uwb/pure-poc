@@ -1,4 +1,3 @@
-*.csv
 *.iml
 .gradle
 /local.properties
