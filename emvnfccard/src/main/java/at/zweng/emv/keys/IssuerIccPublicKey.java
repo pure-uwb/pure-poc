@@ -26,7 +26,7 @@ public class IssuerIccPublicKey extends EmvPublicKey {
         return FORMAT_ISSUER_PUBKEY;
     }
 
-    public RSAPublicKey getBaseKey(){
+    public RSAPublicKey getBaseKey() {
         KeyFactory keyFactory;
         RSAPublicKeySpec keySpec = new RSAPublicKeySpec(this.getModulus(), this.getPublicExponent());
         try {

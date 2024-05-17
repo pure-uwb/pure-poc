@@ -4,8 +4,6 @@ import static at.zweng.emv.utils.EmvUtils.getUnsignedBytes;
 
 import android.util.Log;
 
-import ch.ethz.emvextension.Apdu.HexUtils;
-
 import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -37,6 +35,7 @@ import at.zweng.emv.keys.EmvKeyReader;
 import at.zweng.emv.keys.IssuerIccPublicKey;
 import at.zweng.emv.utils.EmvParsingException;
 import at.zweng.emv.utils.EmvUtils;
+import ch.ethz.emvextension.Apdu.HexUtils;
 import fr.devnied.bitlib.BytesUtils;
 
 /*
@@ -90,7 +89,7 @@ public class Crypto {
         }
     }
 
-    public static byte [] loadCertificate(InputStream inputStream){
+    public static byte[] loadCertificate(InputStream inputStream) {
         try {
             byte[] certHex = IOUtils.toByteArray(inputStream);
             return BytesUtils.fromString(new String(certHex, StandardCharsets.UTF_8));
@@ -162,37 +161,37 @@ public class Crypto {
         return getUnsignedBytes(dataBigInt.modPow(exponent, modulus));
     }
 
-    public static byte[] encodePublicKey(ECPublicKey pk){
-        byte [] x_byte =  pk.getW().getAffineX().toByteArray();
-        byte [] y_byte =  pk.getW().getAffineY().toByteArray();
+    public static byte[] encodePublicKey(ECPublicKey pk) {
+        byte[] x_byte = pk.getW().getAffineX().toByteArray();
+        byte[] y_byte = pk.getW().getAffineY().toByteArray();
         Log.i("DEBUG", "Pk: " + HexUtils.bin2hex(x_byte) + "Len: " + x_byte.length);
         Log.i("DEBUG", "Pk: " + HexUtils.bin2hex(y_byte) + "Len: " + y_byte.length);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            baos.write( (byte)x_byte.length);
+            baos.write((byte) x_byte.length);
             baos.write(x_byte);
-            baos.write( (byte)y_byte.length);
+            baos.write((byte) y_byte.length);
             baos.write(y_byte);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        byte [] encoded =  baos.toByteArray();//key.getPublic().getEncoded();
+        byte[] encoded = baos.toByteArray();//key.getPublic().getEncoded();
         return encoded;
     }
 
-    public static PublicKey decodePublicKey(byte [] pk){
+    public static PublicKey decodePublicKey(byte[] pk) {
         int x_len = pk[0];
         byte[] x_byte = Arrays.copyOfRange(pk, 1, x_len + 1);
         int y_len = pk[x_len + 1];
         byte[] y_byte = Arrays.copyOfRange(pk, 2 + x_len, 2 + x_len + y_len);
 
-        Log.i("DEBUG",  "x_len:" + x_len);
-        Log.i("DEBUG",  "x_len:" + y_len);
+        Log.i("DEBUG", "x_len:" + x_len);
+        Log.i("DEBUG", "x_len:" + y_len);
 
         Log.i("DEBUG", "x: " + HexUtils.bin2hex(x_byte));
         Log.i("DEBUG", "y: " + HexUtils.bin2hex(y_byte));
 
-        ECPoint pubPoint = new ECPoint(new BigInteger(x_byte),new BigInteger(y_byte));
+        ECPoint pubPoint = new ECPoint(new BigInteger(x_byte), new BigInteger(y_byte));
         AlgorithmParameters parameters = null;
         try {
             parameters = AlgorithmParameters.getInstance("EC");

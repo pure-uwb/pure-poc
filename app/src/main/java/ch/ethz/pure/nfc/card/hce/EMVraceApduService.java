@@ -18,12 +18,12 @@ public class EMVraceApduService extends HostApduService {
 
     @Override
     public byte[] processCommandApdu(byte[] commandApdu, Bundle extras) {
-        try{
+        try {
             Log.i(this.getClass().getName(), "Received command " + Util.bytesToHex(commandApdu));
             if (cardActivity != null)
                 cardActivity.onApduCommandReceived(commandApdu);
             dispatcher.dispatch(this, ip, port, commandApdu, false, null);
-        }catch (Exception e){
+        } catch (Exception e) {
             Log.e(this.getClass().getName(), e.toString());
             Log.e(this.getClass().getName(), Arrays.toString(e.getStackTrace()));
         }
@@ -32,10 +32,10 @@ public class EMVraceApduService extends HostApduService {
 
     @Override
     public void onDeactivated(int reason) {
-        try{
+        try {
             if (cardActivity != null)
                 cardActivity.onApduServiceDeactivated(reason);
-        }catch (Exception e){
+        } catch (Exception e) {
             Log.e(this.getClass().getName(), e.toString());
         }
     }

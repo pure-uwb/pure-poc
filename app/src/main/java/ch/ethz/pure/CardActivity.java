@@ -31,7 +31,7 @@ public class CardActivity extends AppCompatActivity {
     private ProgressBar pbTransacting;
     private TextView tvMsg;
     private boolean transacting, receivedGPO;
-    private boolean isMock = true;
+    private final boolean isMock = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,8 +39,8 @@ public class CardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_card);
 
         EMVraceApduService.cardActivity = this;
-        ProtocolModifier protocolModifier = Provider.getModifier(this,false);
-        CommandDispatcherImpl dispatcher =  new CommandDispatcherImpl(protocolModifier, BuildSettings.transparentRelay);
+        ProtocolModifier protocolModifier = Provider.getModifier(this, false);
+        CommandDispatcherImpl dispatcher = new CommandDispatcherImpl(protocolModifier, BuildSettings.transparentRelay);
         EMVraceApduService.dispatcher = dispatcher;
         protocolModifier.setNfcChannel(dispatcher);
         ivOK = findViewById(R.id.ivOK);
@@ -48,7 +48,8 @@ public class CardActivity extends AppCompatActivity {
         tvMsg = findViewById(R.id.tvMsg);
         initializeUart();
     }
-    private void initializeUart(){
+
+    private void initializeUart() {
         UsbManager manager = (UsbManager) this.getBaseContext().getSystemService(Context.USB_SERVICE);
         List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager);
         if (availableDrivers.isEmpty()) {

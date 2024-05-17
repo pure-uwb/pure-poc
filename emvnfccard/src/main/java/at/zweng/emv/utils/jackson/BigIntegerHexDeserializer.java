@@ -21,7 +21,7 @@ public class BigIntegerHexDeserializer extends StdDeserializer<BigInteger> {
     }
 
     @Override
-    public BigInteger deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public BigInteger deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         JsonNode node = p.getCodec().readTree(p);
         return new BigInteger(1, BytesUtils.fromString(node.asText()));
     }

@@ -47,14 +47,14 @@ import javax.crypto.spec.SecretKeySpec;
  * // Expand the prk with some information related to your data and the length of the output key.
  * SecretKey derivedKey = hkdf.expand(prk, "id: 5".getBytes(StandardCharsets.UTF_8), 32);
  * }</pre>
- *
+ * <p>
  * HKDF is a generic means for generating derived keys. In some cases, you may want to use it in a
  * different manner. Consult the RFC for security considerations, when to omit a salt, skipping the
  * extraction step, etc.
  */
 public class Hkdf {
-    private static Hash DEFAULT_HASH = Hash.SHA256;
-    private static Provider DEFAULT_PROVIDER = Security.getProviders()[1];
+    private static final Hash DEFAULT_HASH = Hash.SHA256;
+    private static final Provider DEFAULT_PROVIDER = Security.getProviders()[1];
 
     private final Hash hash;
     private final Provider provider;
@@ -91,10 +91,10 @@ public class Hkdf {
      * HKDF-Extract(salt, IKM) -> PRK
      *
      * @param salt optional salt value (a non-secret random value); if not provided, it is set to a string of HashLen zeros.
-     * @param ikm input keying material
+     * @param ikm  input keying material
      * @return a pseudorandom key (of HashLen bytes)
      */
-    public SecretKey extract( SecretKey salt, byte[] ikm) {
+    public SecretKey extract(SecretKey salt, byte[] ikm) {
         requireNonNull(ikm, "ikm must not be null");
         if (salt == null) {
             salt = new SecretKeySpec(new byte[hash.getByteLength()], hash.getAlgorithm());
@@ -108,8 +108,8 @@ public class Hkdf {
     /**
      * HKDF-Expand(PRK, info, L) -> OKM
      *
-     * @param key a pseudorandom key of at least HashLen bytes (usually, the output from the extract step)
-     * @param info context and application specific information (can be empty)
+     * @param key          a pseudorandom key of at least HashLen bytes (usually, the output from the extract step)
+     * @param info         context and application specific information (can be empty)
      * @param outputLength length of output keying material in bytes (<= 255*HashLen)
      * @return output keying material
      */
@@ -154,7 +154,7 @@ public class Hkdf {
             ByteBuffer t = ByteBuffer.allocate(hashRound.length + info.length + 1);
             t.put(hashRound);
             t.put(info);
-            t.put((byte)roundNum);
+            t.put((byte) roundNum);
             hashRound = mac.doFinal(t.array());
             generatedBytes.put(hashRound);
         }

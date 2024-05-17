@@ -2,9 +2,9 @@ package at.zweng.emv.keys.checks;
 /**
  * Test class, checks if the given public RSA key is affected by the ROCA vulnerability
  * CVE-2017-15361
- *
+ * <p>
  * See here for details: https://crocs.fi.muni.cz/public/papers/rsa_ccs17
- *
+ * <p>
  * Credits: ported to Java by Martin Paljak
  * (based on: https://raw.githubusercontent.com/crocs-muni/roca/master/java/BrokenKey.java)
  */

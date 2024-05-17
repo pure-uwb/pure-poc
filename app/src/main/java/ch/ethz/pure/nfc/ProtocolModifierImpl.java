@@ -5,19 +5,6 @@ import static com.github.devnied.emvnfccard.utils.CommandApdu.getCommandEnum;
 import android.app.Activity;
 import android.util.Log;
 
-import ch.ethz.emvextension.Apdu.ApduWrapperCard;
-import ch.ethz.emvextension.Apdu.ApduWrapperReader;
-import ch.ethz.emvextension.channel.Channel;
-import ch.ethz.emvextension.controller.CardController;
-import ch.ethz.emvextension.controller.ReaderController;
-import ch.ethz.emvextension.protocol.ApplicationCryptogram;
-import ch.ethz.emvextension.protocol.CardStateMachine;
-import ch.ethz.emvextension.jobs.EmvParserJob;
-import ch.ethz.emvextension.protocol.ProtocolExecutor;
-import ch.ethz.emvextension.protocol.ProtocolModifier;
-import ch.ethz.emvextension.protocol.ReaderStateMachine;
-import ch.ethz.emvextension.protocol.Session;
-import ch.ethz.emvextension.utils.Timer;
 import com.github.devnied.emvnfccard.enums.CommandEnum;
 import com.github.devnied.emvnfccard.iso7816emv.EmvTags;
 import com.github.devnied.emvnfccard.model.EmvCard;
@@ -31,6 +18,19 @@ import java.util.Arrays;
 import java.util.concurrent.Semaphore;
 
 import at.zweng.emv.utils.EmvParsingException;
+import ch.ethz.emvextension.Apdu.ApduWrapperCard;
+import ch.ethz.emvextension.Apdu.ApduWrapperReader;
+import ch.ethz.emvextension.channel.Channel;
+import ch.ethz.emvextension.controller.CardController;
+import ch.ethz.emvextension.controller.ReaderController;
+import ch.ethz.emvextension.jobs.EmvParserJob;
+import ch.ethz.emvextension.protocol.ApplicationCryptogram;
+import ch.ethz.emvextension.protocol.CardStateMachine;
+import ch.ethz.emvextension.protocol.ProtocolExecutor;
+import ch.ethz.emvextension.protocol.ProtocolModifier;
+import ch.ethz.emvextension.protocol.ReaderStateMachine;
+import ch.ethz.emvextension.protocol.Session;
+import ch.ethz.emvextension.utils.Timer;
 import ch.ethz.pure.MainActivity;
 import ch.ethz.pure.Provider;
 import fr.devnied.bitlib.BytesUtils;
@@ -40,11 +40,11 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
     public boolean executeExtension = true;
     private final EmvParser parser = new EmvParser(true);
     private final byte EXTENSION_PROTOCOL_AIP_MASK = (byte) 0x2;
-    private boolean isReader;
+    private final boolean isReader;
 
     private Channel nfcChannel;
 
-    private Activity activity;
+    private final Activity activity;
 
     private ReaderController readerController;
     private CardController cardController = null;
@@ -89,7 +89,7 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                 // If EXTENSION_PROTOCOL is NOT set, then we are the card and we have to set it to
                 // communicate to the reader that we are capable of executing ranging.
                 byte[] aip = TlvUtil.getValue(res, EmvTags.APPLICATION_INTERCHANGE_PROFILE);
-                if (aip == null){
+                if (aip == null) {
                     Log.e(TAG, "Failed to find AIP in\n " + BytesUtils.bytesToString(res));
                 }
 
@@ -131,8 +131,8 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                 EmvCard card = parser.getCard();
                 card.setType(parser.findCardScheme(card.getAid(), card.getCardNumber()));
                 // Derive the AC in parallel
-                if (executeExtension){
-                    if ( isReader ){
+                if (executeExtension) {
+                    if (isReader) {
                         new EmvParserJob(parser.getCard(), readerController.getSemaphore(),
                                 res, readerController.getAC(), activity,
                                 com.github.devnied.emvnfccard.R.raw.cardschemes_public_root_ca_keys).start();
@@ -147,18 +147,17 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                             res = new byte[]{(byte) 0x00};
                             Log.e("ProtocolModifierImpl", "Extension protocol failed");
                         }
-                    }
-                    else{
+                    } else {
                         // The card parses the transaction as well to recover the input to GEN_AC
                         new EmvParserJob(parser.getCard(), cardController.getSemaphore(),
                                 res, cardController.getAC(), activity,
                                 com.github.devnied.emvnfccard.R.raw.cardschemes_public_root_ca_keys).start();
                     }
-                }else{
-                    ((MainActivity)activity).showSuccess(true);
+                } else {
+                    ((MainActivity) activity).showSuccess(true);
                 }
                 Long stop = System.nanoTime();
-                Log.i("Timer", "Total transaction time: " + ((float)(stop - start)/1000000));
+                Log.i("Timer", "Total transaction time: " + ((float) (stop - start) / 1000000));
                 isProtocolFinished = true;
                 break;
             case SELECT:
@@ -171,7 +170,7 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                 break;
         }
         Long end_parse = System.nanoTime();
-        Log.i("Timer", "[MOD]\t" + "Time: " + ((float)(end_parse - start_parse)/1000000) + command);
+        Log.i("Timer", "[MOD]\t" + "Time: " + ((float) (end_parse - start_parse) / 1000000) + command);
 
         return res;
     }

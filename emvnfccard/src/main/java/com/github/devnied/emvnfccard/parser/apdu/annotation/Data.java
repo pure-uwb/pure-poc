@@ -24,41 +24,40 @@ import fr.devnied.bitlib.BitUtils;
 
 /**
  * Annotation to describe field information
- * 
+ *
  * @author MILLAU Julien
- * 
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Data {
 
-	/**
-	 * Format date
-	 */
-	String format() default BitUtils.DATE_FORMAT;
+    /**
+     * Format date
+     */
+    String format() default BitUtils.DATE_FORMAT;
 
-	/**
-	 * The current date standard
-	 */
-	int dateStandard() default 0;
+    /**
+     * The current date standard
+     */
+    int dateStandard() default 0;
 
-	/**
-	 * index of data
-	 */
-	int index();
+    /**
+     * index of data
+     */
+    int index();
 
-	/**
-	 * Read the string in hexa
-	 */
-	boolean readHexa() default false;
+    /**
+     * Read the string in hexa
+     */
+    boolean readHexa() default false;
 
-	/**
-	 * Number of bytes
-	 */
-	int size();
+    /**
+     * Number of bytes
+     */
+    int size();
 
-	/**
-	 * Tag Name
-	 */
-	String tag();
+    /**
+     * Tag Name
+     */
+    String tag();
 }

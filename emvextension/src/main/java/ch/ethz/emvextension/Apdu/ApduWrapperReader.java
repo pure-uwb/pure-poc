@@ -11,7 +11,7 @@ public class ApduWrapperReader implements ApduWrapper {
 
     @Override
     public byte[] encode(CommandEnum command, byte[] payload) {
-        return new  CommandAPDU(command.getCla(), command.getIns(), command.getP1(),
+        return new CommandAPDU(command.getCla(), command.getIns(), command.getP1(),
                 command.getP2(), payload).getBytes();
     }
 

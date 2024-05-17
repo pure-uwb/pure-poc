@@ -27,7 +27,7 @@ public class Provider implements IProvider {
     /**
      * Logger
      */
-    private StringBuffer log = new StringBuffer();
+    private final StringBuffer log = new StringBuffer();
 
     /**
      * Tag comm

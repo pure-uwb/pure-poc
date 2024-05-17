@@ -13,11 +13,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class StateMachineUtils {
-    private static Map<StateMachine.State, String> stateNames;
-    private static Map<String, StateMachine.State> namesState;
+    private static final Map<StateMachine.State, String> stateNames;
+    private static final Map<String, StateMachine.State> namesState;
 
     static {
-        Map<StateMachine.State, String> stateNamesTmp =  new HashMap<StateMachine.State, String>();
+        Map<StateMachine.State, String> stateNamesTmp = new HashMap<StateMachine.State, String>();
         stateNamesTmp.put(INIT, "INIT");
         stateNamesTmp.put(RECEIVE_HELLO, "RECEIVE_HELLO");
         stateNamesTmp.put(SEND_HELLO, "SEND_HELLO");
@@ -27,7 +27,7 @@ public class StateMachineUtils {
         stateNamesTmp.put(FINISH, "FINISH");
         stateNames = Collections.unmodifiableMap(stateNamesTmp);
 
-        Map<String, StateMachine.State> nameToStateTmp =  new HashMap<>();
+        Map<String, StateMachine.State> nameToStateTmp = new HashMap<>();
         nameToStateTmp.put("INIT", INIT);
         nameToStateTmp.put("RECEIVE_HELLO", RECEIVE_HELLO);
         nameToStateTmp.put("SEND_HELLO", SEND_HELLO);
@@ -37,11 +37,12 @@ public class StateMachineUtils {
         nameToStateTmp.put("FINISH", FINISH);
         namesState = Collections.unmodifiableMap(nameToStateTmp);
     }
-    public static String stateToString(StateMachine.State state){
+
+    public static String stateToString(StateMachine.State state) {
         return stateNames.get(state);
     }
 
-    public static StateMachine.State stringToState(String state){
+    public static StateMachine.State stringToState(String state) {
         return namesState.get(state);
     }
 }

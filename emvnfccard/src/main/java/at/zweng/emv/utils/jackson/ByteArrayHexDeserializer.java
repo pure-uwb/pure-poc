@@ -20,7 +20,7 @@ public class ByteArrayHexDeserializer extends StdDeserializer<byte[]> {
     }
 
     @Override
-    public byte[] deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public byte[] deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         JsonNode node = p.getCodec().readTree(p);
         return BytesUtils.fromString(node.asText());
     }

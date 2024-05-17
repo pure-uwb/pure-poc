@@ -1,4 +1,4 @@
- package ch.ethz.emvextension.Apdu;
+package ch.ethz.emvextension.Apdu;
 
 import android.util.Log;
 
@@ -41,11 +41,11 @@ public class ResponseAPDU {
     public ResponseAPDU(int sw1, int sw2, byte[] data) {
         apdu = new byte[data.length + 2];
         int dataOffset = 2;
-        apdu[apdu.length- 2] = (byte) sw1;
-        apdu[apdu.length -1] = (byte) sw2;
-        Log.i("APDU", "Data:"  + getHex(data));
+        apdu[apdu.length - 2] = (byte) sw1;
+        apdu[apdu.length - 1] = (byte) sw2;
+        Log.i("APDU", "Data:" + getHex(data));
         System.arraycopy(data, 0, apdu, 0, data.length);
-        Log.i("APDU", "apdu:"  + getHex(apdu));
+        Log.i("APDU", "apdu:" + getHex(apdu));
     }
 
     private String getHex(byte[] bytes) {

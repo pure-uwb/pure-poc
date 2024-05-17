@@ -15,7 +15,7 @@ public class ReaderBackend extends Thread {
     String ip;
     int port;
     EmvTrace emvTrace;
-    private Semaphore s;
+    private final Semaphore s;
     private final String TAG = this.getClass().toString();
 
     public ReaderBackend(String ip, int port, EmvTrace emvTrace, Semaphore s) {
@@ -28,13 +28,9 @@ public class ReaderBackend extends Thread {
     @Override
     public void run() {
         try {
-//            s.acquire();
             Log.i(TAG, "On thread" + Thread.currentThread());
             while (emvTrace.commandsHasNext()) {
-//            while(true){
-//                if(!emvTrace.commandsHasNext()){
-//                    emvTrace.resetCommands();
-//                }
+
                 if (Thread.interrupted()) {
                     // We've been interrupted: no more crunching.
                     return;

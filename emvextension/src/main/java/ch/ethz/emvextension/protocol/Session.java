@@ -2,8 +2,6 @@ package ch.ethz.emvextension.protocol;
 
 import android.util.Log;
 
-import ch.ethz.emvextension.channel.PropertyChangeObservable;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.ByteArrayOutputStream;
@@ -17,12 +15,14 @@ import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.ECGenParameterSpec;
 
-public class Session  implements PropertyChangeObservable {
+import ch.ethz.emvextension.channel.PropertyChangeObservable;
+
+public class Session implements PropertyChangeObservable {
 
     private static final float MAX_DISTANCE = 0.50F;
     private KeyPair localKey;
     private PublicKey remoteKey;
-    private byte [] secret;
+    private byte[] secret;
     private final StateMachine stateMachine;
     Long pollRx;
     Long pollTx;
@@ -81,17 +81,18 @@ public class Session  implements PropertyChangeObservable {
     public void setSecret(byte[] secret) {
         this.secret = secret;
     }
-    public StateMachine.State getState(){
+
+    public StateMachine.State getState() {
         return stateMachine.getState();
     }
 
-    public void step(){
+    public void step() {
         String oldState = stateMachine.getStateString();
         Log.i("STATE_MACHINE", "From:" + oldState);
         stateMachine.step();
         Log.i("STATE_MACHINE", "To:" + stateMachine.getStateString());
         notifyAllListeners("state", oldState, stateMachine.getStateString());
-       }
+    }
 
     public void setTimings(Long pollRx, Long pollTx, Long respRx, Long respTx, Long finalTx) {
         this.pollRx = pollRx;
@@ -108,7 +109,7 @@ public class Session  implements PropertyChangeObservable {
 
     public void setDistance(Float distance) {
         this.distance = distance;
-        notifyAllListeners("distance", null, "Distance: " + distance );
+        notifyAllListeners("distance", null, "Distance: " + distance);
     }
 
     public float getDistance() {
@@ -131,24 +132,24 @@ public class Session  implements PropertyChangeObservable {
         support.firePropertyChange(desc, oldValue, newValue);
     }
 
-    public PropertyChangeListener[] getListeners(){
+    public PropertyChangeListener[] getListeners() {
         return support.getPropertyChangeListeners();
     }
 
-    public void finish(){
+    public void finish() {
         //Necessary to register the time it took to finish
 
-        notifyAllListeners("state_finish", stateMachine.getStateString(),"EXIT");
+        notifyAllListeners("state_finish", stateMachine.getStateString(), "EXIT");
         notifyAllListeners("success", !this.isSuccess(), this.isSuccess());
     }
 
-    public byte[] getTranscript(){
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+    public byte[] getTranscript() {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         try {
             outputStream.write(this.localKey.getPublic().getEncoded());
             outputStream.write(this.remoteKey.getEncoded());
-            if( respTx != null & pollRx != null){
+            if (respTx != null & pollRx != null) {
                 outputStream.write(longToBytes(pollTx));
                 outputStream.write(longToBytes(respRx));
                 outputStream.write(longToBytes(finalTx));
@@ -160,13 +161,13 @@ public class Session  implements PropertyChangeObservable {
         return outputStream.toByteArray();
     }
 
-    public byte[] getRemoteTranscript(){
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+    public byte[] getRemoteTranscript() {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         try {
             outputStream.write(this.remoteKey.getEncoded());
             outputStream.write(this.localKey.getPublic().getEncoded());
-            if( respTx != null & pollRx != null & stateMachine.getState() == StateMachine.State.AUTH){
+            if (respTx != null & pollRx != null & stateMachine.getState() == StateMachine.State.AUTH) {
                 //TODO: modify state once new states are added
                 outputStream.write(longToBytes(pollTx));
                 outputStream.write(longToBytes(respRx));
@@ -178,6 +179,7 @@ public class Session  implements PropertyChangeObservable {
         }
         return outputStream.toByteArray();
     }
+
     public byte[] longToBytes(long x) {
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
         buffer.putLong(x);
@@ -188,24 +190,27 @@ public class Session  implements PropertyChangeObservable {
         this.tagKey = tagKey;
     }
 
-    public byte[] getTagKey(){return tagKey;}
+    public byte[] getTagKey() {
+        return tagKey;
+    }
 
     public void setSignVerif(boolean b) {
         this.signVerif = b;
     }
 
-    public boolean isSuccess(){
+    public boolean isSuccess() {
         return this.signVerif & this.distance < MAX_DISTANCE;
     }
 
     public void setAC(byte[] ac) {
         this.AC = ac;
     }
-    
-    public void setSecondaryKey(RSAPublicKey key){
+
+    public void setSecondaryKey(RSAPublicKey key) {
         this.secondaryKey = key;
     }
-    public RSAPublicKey getSecondaryKey(){
+
+    public RSAPublicKey getSecondaryKey() {
         return secondaryKey;
     }
 }

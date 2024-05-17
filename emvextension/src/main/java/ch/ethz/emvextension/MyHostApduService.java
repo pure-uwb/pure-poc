@@ -36,8 +36,9 @@ public class MyHostApduService extends HostApduService {
 
     @Override
     public void onDeactivated(int reason) {
-       Log.i(TAG, "Deactivated");
+        Log.i(TAG, "Deactivated");
     }
+
     @Override
     public void onCreate() {
         super.onCreate();

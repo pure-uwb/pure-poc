@@ -23,19 +23,19 @@ import java.util.LinkedHashMap;
 
 /**
  * http://www.emvlab.org/emvtags/all/
- * 
- * 
+ * <p>
+ * <p>
  * The coding of primitive context-specific class data objects in the ranges '80' to '9E' and '9F00' to '9F4F' is reserved for EMV
  * specification. The coding of primitive context-specific class data objects in the range '9F50' to '9F7F' is reserved for the
  * payment systems.
- * 
+ *
  * @author sasc
  */
 public final class EmvTags {
 
-	private static LinkedHashMap<ByteArrayWrapper, ITag> tags = new LinkedHashMap<ByteArrayWrapper, ITag>();
+    private static final LinkedHashMap<ByteArrayWrapper, ITag> tags = new LinkedHashMap<ByteArrayWrapper, ITag>();
 
-	// @formatter:off
+    // @formatter:off
 	// One byte tags
 	// 7816-4 Interindustry data object for tag allocation authority
 	public static final ITag UNIVERSAL_TAG_FOR_OID = new TagImpl("06", TagValueTypeEnum.BINARY, "Object Identifier (OID)", "Universal tag for OID");
@@ -377,59 +377,59 @@ public final class EmvTags {
 
 	// @formatter:on
 
-	/**
-	 * If the tag is not found, this method returns the "[UNHANDLED TAG]" containing 'tagBytes'
-	 * 
-	 * @param tagBytes
-	 * @return
-	 */
-	public static ITag getNotNull(final byte[] tagBytes) {
-		ITag tag = find(tagBytes);
-		if (tag == null) {
-			tag = createUnknownTag(tagBytes);
-		}
-		return tag;
-	}
+    /**
+     * If the tag is not found, this method returns the "[UNHANDLED TAG]" containing 'tagBytes'
+     *
+     * @param tagBytes
+     * @return
+     */
+    public static ITag getNotNull(final byte[] tagBytes) {
+        ITag tag = find(tagBytes);
+        if (tag == null) {
+            tag = createUnknownTag(tagBytes);
+        }
+        return tag;
+    }
 
-	public static ITag createUnknownTag(final byte[] tagBytes) {
-		return new TagImpl(tagBytes, TagValueTypeEnum.BINARY, "[UNKNOWN TAG]", "");
-	}
+    public static ITag createUnknownTag(final byte[] tagBytes) {
+        return new TagImpl(tagBytes, TagValueTypeEnum.BINARY, "[UNKNOWN TAG]", "");
+    }
 
-	/**
-	 * Returns null if Tag not found
-	 */
-	public static ITag find(final byte[] tagBytes) {
-		return tags.get(ByteArrayWrapper.wrapperAround(tagBytes));
-	}
+    /**
+     * Returns null if Tag not found
+     */
+    public static ITag find(final byte[] tagBytes) {
+        return tags.get(ByteArrayWrapper.wrapperAround(tagBytes));
+    }
 
-	private static void addTag(final ITag tag) {
-		// Use 'wrapper around', since the underlaying byte-array will not be changed in this case
-		ByteArrayWrapper baw = ByteArrayWrapper.wrapperAround(tag.getTagBytes());
-		if (tags.containsKey(baw)) {
-			throw new IllegalArgumentException("Tag already added " + tag);
-		}
-		tags.put(baw, tag);
-	}
+    private static void addTag(final ITag tag) {
+        // Use 'wrapper around', since the underlaying byte-array will not be changed in this case
+        ByteArrayWrapper baw = ByteArrayWrapper.wrapperAround(tag.getTagBytes());
+        if (tags.containsKey(baw)) {
+            throw new IllegalArgumentException("Tag already added " + tag);
+        }
+        tags.put(baw, tag);
+    }
 
-	static {
-		Field[] fields;
+    static {
+        Field[] fields;
 
-		fields = EmvTags.class.getFields();
-		for (Field f : fields) {
-			if (f.getType() == ITag.class) {
-				try {
-					ITag t = (ITag) f.get(null);
-					addTag(t);
-				} catch (IllegalAccessException ex) {
-					throw new RuntimeException(ex);
-				}
-			}
-		}
-	}
+        fields = EmvTags.class.getFields();
+        for (Field f : fields) {
+            if (f.getType() == ITag.class) {
+                try {
+                    ITag t = (ITag) f.get(null);
+                    addTag(t);
+                } catch (IllegalAccessException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        }
+    }
 
-	/**
-	 * Private constructor
-	 */
-	private EmvTags() {
-	}
+    /**
+     * Private constructor
+     */
+    private EmvTags() {
+    }
 }

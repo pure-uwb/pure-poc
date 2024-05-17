@@ -7,7 +7,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 public class Certificates {
-    static X509Certificate getIssuerCertificate(){
+    static X509Certificate getIssuerCertificate() {
         CertificateFactory cf = null;
         X509Certificate cert;
         try {
@@ -34,15 +34,15 @@ public class Certificates {
                 "vFN3KMFHVEAm22ufGV8N4uMlyA2O4tOZeNPcx0xHAzY=\n" +
                 "-----END CERTIFICATE-----\n";
         InputStream targetStream = new ByteArrayInputStream(initialString.getBytes());
-        try{
-            cert = (X509Certificate)cf.generateCertificate(targetStream);
+        try {
+            cert = (X509Certificate) cf.generateCertificate(targetStream);
         } catch (CertificateException e) {
             throw new RuntimeException(e);
         }
         return cert;
     }
 
-    static X509Certificate getCardCertificate(){
+    static X509Certificate getCardCertificate() {
         CertificateFactory cf = null;
         X509Certificate cert;
         try {
@@ -67,8 +67,8 @@ public class Certificates {
                 "gw==\n" +
                 "-----END CERTIFICATE-----\n";
         InputStream targetStream = new ByteArrayInputStream(initialString.getBytes());
-        try{
-            cert = (X509Certificate)cf.generateCertificate(targetStream);
+        try {
+            cert = (X509Certificate) cf.generateCertificate(targetStream);
         } catch (CertificateException e) {
             throw new RuntimeException(e);
         }

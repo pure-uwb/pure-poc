@@ -3,6 +3,12 @@ package at.zweng.emv.keys;
 import static at.zweng.emv.utils.EmvUtils.calculateSHA1;
 import static at.zweng.emv.utils.EmvUtils.getUnsignedBytes;
 
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+
+import com.github.devnied.emvnfccard.utils.HexUtils;
+
 import org.apache.commons.lang3.time.DateUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -114,7 +120,7 @@ public class EmvKeyReader {
                 issuerPublicKey.getModulus());
         final RecoveredIccPublicKey cert = this.parseIccPublicKeyCert(recoveredBytes,
                 issuerPublicKey.getModulusBytes().length);
-
+        Log.i("EmvReader", "ICC certificate:\n" + cert);
         byte[] encoded = encodeIccPublicKeyCert(cert, null);
         Date expirationDate = parseDate(cert.certExpirationDate);
         RecoveredIccPublicKey tmp = this.parseIccPublicKeyCert(encoded,
@@ -131,7 +137,7 @@ public class EmvKeyReader {
 
     public byte[] createNewCertificate(IssuerIccPublicKey issuerPublicKey, byte[] iccPublicKeyCertificate,
                                        byte[] iccRemainder, byte[] iccPublicKeyExponent, byte[] newPublicKey, RSAPrivateKey issuerKey)
-          throws EmvParsingException {
+            throws EmvParsingException {
         byte[] recoveredBytes = calculateRSA(iccPublicKeyCertificate, issuerPublicKey.getPublicExponent(),
                 issuerPublicKey.getModulus());
         final RecoveredIccPublicKey cert = this.parseIccPublicKeyCert(recoveredBytes,
@@ -191,10 +197,10 @@ public class EmvKeyReader {
 
     /**
      * https://www.emvco.com/wp-content/uploads/2017/05/EMV_v4.3_Book_2_Security_and_Key_Management_20120607061923900.pdf
-     *
+     * <p>
      * EMV spec 4.3, Book 2, table 13:
      * "Format of Data Recovered from Issuer Public Key Certificate":
-     *
+     * <p>
      * Field Name                         Length   Description
      * Recovered Data Header                 1     Hex value '6A'
      * Certificate Format                    1     Hex value '02'
@@ -303,10 +309,10 @@ public class EmvKeyReader {
 
     /**
      * https://www.emvco.com/wp-content/uploads/2017/05/EMV_v4.3_Book_2_Security_and_Key_Management_20120607061923900.pdf
-     *
+     * <p>
      * EMV spec 4.3, Book 2, table 14:
      * "Format of Data Recovered from ICC Public Key Certificate ":
-     *
+     * <p>
      * Field Name                         Length   Description
      * Recovered Data Header                 1     Hex value '0x6A'
      * Certificate Format                    1     Hex value '0x04'
@@ -339,9 +345,20 @@ public class EmvKeyReader {
         byte[] optionalPadding;
         byte[] hashResult;
         int dataTrailer;
+
+        @NonNull
+        @Override
+        public String toString() {
+            return "PAN\t" + HexUtils.bin2hex(applicationPan) + "\n" +
+                    "certSerialNumber\t" + HexUtils.bin2hex(certSerialNumber) + "\n" +
+                    "certificateFormat\t" + certificateFormat + "\n" +
+                    "algoIndicator\t" + iccPubKeyAlgoIndicator + "\n" +
+                    "hashAlgo\t" + hashAlgoIndicator;
+
+        }
     }
 
-    byte [] encodeIccPublicKeyCert(RecoveredIccPublicKey cert, byte [] iccRemainingBytes)
+    byte[] encodeIccPublicKeyCert(RecoveredIccPublicKey cert, byte[] iccRemainingBytes)
             throws EmvParsingException {
         // NOTE:
         // To match the hash from EMV, the hash input should contain all the Static Authenticated
@@ -370,7 +387,7 @@ public class EmvKeyReader {
         hashStream.write((byte) 3); // ICC public exponent
         byte[] calculatedHash = calculateSHA1(hashStream.toByteArray());
         outputStream.write(calculatedHash, 0, calculatedHash.length);
-        outputStream.write((byte)0xbc); //data trailer
+        outputStream.write((byte) 0xbc); //data trailer
         return outputStream.toByteArray();
     }
 

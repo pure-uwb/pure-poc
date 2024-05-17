@@ -2,7 +2,7 @@ package ch.ethz.emvextension.jobs;
 
 import ch.ethz.emvextension.controller.ReaderController;
 
-public class ReaderControllerJob extends Thread{
+public class ReaderControllerJob extends Thread {
 
     private final ReaderController controller;
 

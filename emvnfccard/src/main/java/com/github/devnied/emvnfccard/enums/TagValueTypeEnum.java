@@ -15,10 +15,10 @@ package com.github.devnied.emvnfccard.enums;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 /**
- * 
  * @author sasc
  */
 public enum TagValueTypeEnum {
-	BINARY, NUMERIC, TEXT, MIXED, DOL, TEMPLATE
+    BINARY, NUMERIC, TEXT, MIXED, DOL, TEMPLATE
 }

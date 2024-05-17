@@ -52,7 +52,6 @@ import fr.devnied.bitlib.BytesUtils;
  * Class used to read and parse EMV card
  *
  * @author MILLAU Julien
- *
  */
 public class EmvParser {
 
@@ -84,25 +83,23 @@ public class EmvParser {
     /**
      * Provider
      */
-    private IProvider provider;
+    private final IProvider provider;
 
     /**
      * use contact less mode
      */
-    private boolean contactLess;
+    private final boolean contactLess;
 
     /**
      * Card data
      */
-    private EmvCard card;
+    private final EmvCard card;
 
     /**
      * Constructor
      *
-	 * @param pProvider
-	 *            provider to launch command
-	 * @param pContactLess
-	 *            boolean to indicate if the EMV card is contact less or not
+     * @param pProvider    provider to launch command
+     * @param pContactLess boolean to indicate if the EMV card is contact less or not
      */
     public EmvParser(final IProvider pProvider, final boolean pContactLess) {
         provider = pProvider;
@@ -114,16 +111,15 @@ public class EmvParser {
     /**
      * Constructor
      *
-     * @param pProvider
-     *            provider to launch command
-     * @param pContactLess
-     *            boolean to indicate if the EMV card is contact less or not
+     * @param pProvider    provider to launch command
+     * @param pContactLess boolean to indicate if the EMV card is contact less or not
      */
     public EmvParser(final boolean pContactLess) {
         provider = null;
         contactLess = pContactLess;
         card = new EmvCard();
     }
+
     /**
      * Method used to read public data from EMV card
      *
@@ -178,8 +174,7 @@ public class EmvParser {
     /**
      * Method used to parse FCI Proprietary Template
      *
-	 * @param pData
-	 *            data to parse
+     * @param pData data to parse
      * @return
      * @throws CommunicationException
      */
@@ -248,7 +243,7 @@ public class EmvParser {
                 }
                 for (byte[] aid : aids) {
                     ret = extractPublicData(aid, extractApplicationLabel(data));
-                    if (ret == true) {
+                    if (ret) {
                         break;
                     }
                 }
@@ -268,8 +263,7 @@ public class EmvParser {
      * this value need to be appended to the ADF Name in the data field of <br/>
      * the SELECT command.
      *
-	 * @param pData
-	 *            FCI proprietary template data
+     * @param pData FCI proprietary template data
      * @return the Aid to select
      */
     public List<byte[]> getAids(final byte[] pData) {
@@ -305,8 +299,7 @@ public class EmvParser {
     /**
      * Select application with AID or RID
      *
-	 * @param pAid
-	 *            byte array containing AID or RID
+     * @param pAid byte array containing AID or RID
      * @return response byte array
      * @throws CommunicationException
      */
@@ -320,10 +313,8 @@ public class EmvParser {
     /**
      * Read public card data from parameter AID
      *
-	 * @param pAid
-	 *            card AID in bytes
-	 * @param pApplicationLabel
-	 *            application scheme (Application label)
+     * @param pAid              card AID in bytes
+     * @param pApplicationLabel application scheme (Application label)
      * @return true if succeed false otherwise
      */
     protected boolean extractPublicData(final byte[] pAid, final String pApplicationLabel) throws CommunicationException {
@@ -352,10 +343,8 @@ public class EmvParser {
     /**
      * Method used to find the real card scheme
      *
-	 * @param pAid
-	 *            card complete AID
-	 * @param pCardNumber
-	 *            card number
+     * @param pAid        card complete AID
+     * @param pCardNumber card number
      * @return card scheme
      */
     public EmvCardScheme findCardScheme(final String pAid, final String pCardNumber) {
@@ -373,8 +362,7 @@ public class EmvParser {
     /**
      * Method used to extract Log Entry from Select response
      *
-	 * @param pSelectResponse
-	 *            select response
+     * @param pSelectResponse select response
      * @return byte array
      */
     protected byte[] getLogEntry(final byte[] pSelectResponse) {
@@ -416,13 +404,12 @@ public class EmvParser {
     /**
      * Method used to extract commons card data
      *
-	 * @param pGpo
-	 *            global processing options response
+     * @param pGpo global processing options response
      */
     protected boolean extractCommonsCardData(final byte[] pGpo) throws CommunicationException {
         boolean ret = false;
         // Extract data from Message Template 1
-        byte data[] = TlvUtil.getValue(pGpo, EmvTags.RESPONSE_MESSAGE_TEMPLATE_1);
+        byte[] data = TlvUtil.getValue(pGpo, EmvTags.RESPONSE_MESSAGE_TEMPLATE_1);
         if (data != null) {
             data = ArrayUtils.subarray(data, 2, data.length);
         } else { // Extract AFL data from Message template 2
@@ -517,8 +504,7 @@ public class EmvParser {
     /**
      * Method used to extract log entry from card
      *
-	 * @param pLogEntry
-	 *            log entry position
+     * @param pLogEntry log entry position
      */
     protected List<EmvTransactionRecord> extractLogEntry(final byte[] pLogEntry) throws CommunicationException {
         List<EmvTransactionRecord> listRecord = new ArrayList<EmvTransactionRecord>();
@@ -562,8 +548,7 @@ public class EmvParser {
     /**
      * Extract list of application file locator from Afl response
      *
-	 * @param pAfl
-	 *            AFL data
+     * @param pAfl AFL data
      * @return list of AFL
      */
     protected List<Afl> extractAfl(final byte[] pAfl) {
@@ -583,8 +568,7 @@ public class EmvParser {
     /**
      * Extract card holder lastname and firstname
      *
-	 * @param pData
-	 *            card data
+     * @param pData card data
      */
     public void extractCardHolderName(final byte[] pData) {
         // Extract Card Holder name (if exist)
@@ -694,10 +678,8 @@ public class EmvParser {
     /**
      * Method used to create GPO command and execute it
      *
-	 * @param pPdol
-	 *            PDOL data
-	 * @param pProvider
-	 *            provider
+     * @param pPdol     PDOL data
+     * @param pProvider provider
      * @return return data
      */
     protected byte[] getGetProcessingOptions(final byte[] pPdol, final IProvider pProvider) throws CommunicationException {

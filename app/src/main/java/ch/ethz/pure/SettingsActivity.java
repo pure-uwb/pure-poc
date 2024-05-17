@@ -17,10 +17,7 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
         if (savedInstanceState == null) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.settings, new SettingsFragment())
-                    .commit();
+            getSupportFragmentManager().beginTransaction().replace(R.id.settings, new SettingsFragment()).commit();
         }
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -64,21 +61,17 @@ public class SettingsActivity extends AppCompatActivity {
 
                 if (emulatorPref.isEnabled()) {
                     emulator = emulatorPref.getValue();
-                    if ("emulator".equals(key) && newValue != null)
-                        emulator = (String) newValue;
-                } else
-                    emulatorPref.setValue("pos");
+                    if ("emulator".equals(key) && newValue != null) emulator = (String) newValue;
+                } else emulatorPref.setValue("pos");
             }
 
             Preference pref;
 
             //card
-            if ((pref = findPreference("ip")) != null)
-                pref.setVisible("card".equals(emulator));
+            if ((pref = findPreference("ip")) != null) pref.setVisible("card".equals(emulator));
 
             //pos
-            if ((pref = findPreference("save")) != null)
-                pref.setVisible("pos".equals(emulator));
+            if ((pref = findPreference("save")) != null) pref.setVisible("pos".equals(emulator));
         }
     }
 }

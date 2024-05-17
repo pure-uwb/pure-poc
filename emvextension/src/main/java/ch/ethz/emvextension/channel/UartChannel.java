@@ -24,12 +24,12 @@ import fr.devnied.bitlib.BytesUtils;
 public class UartChannel extends Channel implements SerialInputOutputManager.Listener {
     private static final int WRITE_WAIT_MILLIS = 100;
     public static final String READ_DATA = "READ_DATA";
-    private Activity activity;
+    private final Activity activity;
     private Boolean connect;
     private UsbSerialPort port;
-    private int messageSize = 25;
+    private final int messageSize = 25;
     private int received = 0;
-    private byte[] messageBuf;
+    private final byte[] messageBuf;
     private static final String INTENT_ACTION_GRANT_USB = BuildConfig.LIBRARY_PACKAGE_NAME + ".GRANT_USB";
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -41,12 +41,14 @@ public class UartChannel extends Channel implements SerialInputOutputManager.Lis
         }
     };
     private static UartChannel channel = null;
-    public static UartChannel getChannel(Activity activity){
-        if( channel == null){
+
+    public static UartChannel getChannel(Activity activity) {
+        if (channel == null) {
             channel = new UartChannel(activity);
         }
         return channel;
     }
+
     private UartChannel(Activity activity) {
         this.activity = activity;
         activity.registerReceiver(broadcastReceiver, new IntentFilter(INTENT_ACTION_GRANT_USB));
@@ -124,7 +126,7 @@ public class UartChannel extends Channel implements SerialInputOutputManager.Lis
 
     @Override
     public void onNewData(byte[] data) {
-        Log.i("UART", "Received data: " + BytesUtils.bytesToString(data)  + "Len:" + data.length);
+        Log.i("UART", "Received data: " + BytesUtils.bytesToString(data) + "Len:" + data.length);
         if (data.length + received >= messageSize) {
             System.arraycopy(data, 0, messageBuf, received, messageSize - received);
             received = 0;

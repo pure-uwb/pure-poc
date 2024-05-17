@@ -17,7 +17,7 @@ public class ReaderStateMachine implements StateMachine {
     private static final Map<State, State> steps;
 
     static {
-        Map<State, State> steps_tmp=  new HashMap<State, State>();
+        Map<State, State> steps_tmp = new HashMap<State, State>();
         steps_tmp.put(INIT, SEND_HELLO);
         steps_tmp.put(SEND_HELLO, RECEIVE_HELLO);
         steps_tmp.put(RECEIVE_HELLO, RANGE);
@@ -43,7 +43,7 @@ public class ReaderStateMachine implements StateMachine {
 
     @Override
     public String getStateString() {
-            return StateMachineUtils.stateToString(state);
+        return StateMachineUtils.stateToString(state);
     }
 
     @Override

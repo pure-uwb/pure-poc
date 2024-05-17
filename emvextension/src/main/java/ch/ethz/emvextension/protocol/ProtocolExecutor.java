@@ -1,18 +1,14 @@
 package ch.ethz.emvextension.protocol;
 
-import static ch.ethz.emvextension.Apdu.HexUtils.bin2hex;
-import static ch.ethz.emvextension.protocol.StateMachineUtils.stateToString;
 import static com.github.devnied.emvnfccard.iso7816emv.EmvTags.EXT_DH;
 import static com.github.devnied.emvnfccard.iso7816emv.EmvTags.EXT_MAC;
 import static com.github.devnied.emvnfccard.iso7816emv.EmvTags.EXT_SIGNATURE;
+import static ch.ethz.emvextension.Apdu.HexUtils.bin2hex;
+import static ch.ethz.emvextension.protocol.StateMachineUtils.stateToString;
 
 import android.content.Context;
 import android.util.Log;
 
-import ch.ethz.emvextension.Apdu.ApduWrapper;
-import ch.ethz.emvextension.Apdu.CommandAPDU;
-import ch.ethz.emvextension.Crypto;
-import ch.ethz.emvextension.HKDF.Hkdf;
 import com.example.emvextension.R;
 import com.github.devnied.emvnfccard.enums.CommandEnum;
 import com.github.devnied.emvnfccard.iso7816emv.TLV;
@@ -37,6 +33,10 @@ import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import ch.ethz.emvextension.Apdu.ApduWrapper;
+import ch.ethz.emvextension.Apdu.CommandAPDU;
+import ch.ethz.emvextension.Crypto;
+import ch.ethz.emvextension.HKDF.Hkdf;
 import fr.devnied.bitlib.BytesUtils;
 
 public class ProtocolExecutor {
@@ -44,7 +44,7 @@ public class ProtocolExecutor {
     private static final byte[] GET_SIGANTURE = new byte[]{(byte) 0x80, (byte) 0xAE};
     protected final String TAG = "device.ProtocolExecutor";
 
-    private static byte[] SelectAID = new byte[]{(byte) 0xF0, (byte) 0x01, (byte) 0x02, (byte) 0x03, (byte) 0x04, (byte) 0x05, (byte) 0x06};
+    private static final byte[] SelectAID = new byte[]{(byte) 0xF0, (byte) 0x01, (byte) 0x02, (byte) 0x03, (byte) 0x04, (byte) 0x05, (byte) 0x06};
     protected final Context ctx;
     protected final ApduWrapper apduWrapper;
 
@@ -74,10 +74,10 @@ public class ProtocolExecutor {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
             ECPublicKey pk = (ECPublicKey) key.getPublic();
-            byte [] encoded =  Crypto.encodePublicKey(pk);
+            byte[] encoded = Crypto.encodePublicKey(pk);
             Log.i(TAG, "Encoded format: " + key.getPublic().getFormat() + "len: " + encoded.length);
             outputStream.write(new TLV(EXT_DH, encoded.length, encoded).getTlvBytes());
-            byte [] macTag = computeMac(session.getTagKey(), session.getTranscript());
+            byte[] macTag = computeMac(session.getTagKey(), session.getTranscript());
             outputStream.write(new TLV(EXT_MAC, macTag.length, macTag).getTlvBytes());
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -85,7 +85,7 @@ public class ProtocolExecutor {
         byte[] response = outputStream.toByteArray();
         Log.i(TAG, "CreateHello:\n" + getHex(response));
         Long stop = System.nanoTime();
-        Log.i("Timer", "CreateCardHello: " + ((float)(stop - start)/1000000));
+        Log.i("Timer", "CreateCardHello: " + ((float) (stop - start) / 1000000));
         return apduWrapper.encode(response);
     }
 
@@ -93,7 +93,7 @@ public class ProtocolExecutor {
         KeyPair key = session.getLocalKey();
         if (key == null) throw new NullPointerException();
         ECPublicKey pk = (ECPublicKey) key.getPublic();
-        byte [] encoded  = Crypto.encodePublicKey(pk);
+        byte[] encoded = Crypto.encodePublicKey(pk);
         Log.i(TAG, "Encoded format: " + key.getPublic().getFormat());
         byte[] response = encoded;//key.getPublic().getEncoded();
         response = new TLV(EXT_DH, response.length, response).getTlvBytes();
@@ -143,11 +143,11 @@ public class ProtocolExecutor {
         // Verify MAC
         // MAC is used to have explicit key confirmation
         byte[] tag = computeMac(tagKey, session.getRemoteTranscript());
-       if (!Arrays.equals(tag, tagBytes)) {
-           throw new RuntimeException("TAG DO NOT MATCH");
-       }
+        if (!Arrays.equals(tag, tagBytes)) {
+            throw new RuntimeException("TAG DO NOT MATCH");
+        }
         Long stop = System.nanoTime();
-        Log.i("Timer", "ParseCardHello: " + ((float)(stop - start)/1000000));
+        Log.i("Timer", "ParseCardHello: " + ((float) (stop - start) / 1000000));
 
     }
 
@@ -185,12 +185,12 @@ public class ProtocolExecutor {
         session.setSecret(secret);
         session.setTagKey(tagKey);
         Long stop = System.nanoTime();
-        Log.i("Timer", "ParseTerminalHello: " + ((float)(stop - start)/1000000));
+        Log.i("Timer", "ParseTerminalHello: " + ((float) (stop - start) / 1000000));
 
     }
 
     public byte[] selectAID(Session session) {
-        return apduWrapper.encode(CommandEnum.EXT_SELECT_AID ,SelectAID);
+        return apduWrapper.encode(CommandEnum.EXT_SELECT_AID, SelectAID);
     }
 
     public byte[] respSelectAid(Session session) {
@@ -198,7 +198,7 @@ public class ProtocolExecutor {
     }
 
     public byte[] programKey(Session session) {
-        if (session.getState().compareTo(StateMachine.State.RANGE) < 0){
+        if (session.getState().compareTo(StateMachine.State.RANGE) < 0) {
             throw new RuntimeException("Range state accessed in " + stateToString(session.getState()));
         }
         return session.getSecret();
@@ -259,7 +259,6 @@ public class ProtocolExecutor {
             Log.i(TAG, "Distance: " + paymentSession.getDistance());
         } catch (Exception e) {
             Log.e(TAG, e.toString());
-        } finally {
         }
 
     }
@@ -284,7 +283,7 @@ public class ProtocolExecutor {
         ByteArrayOutputStream signature = new ByteArrayOutputStream();
         try (InputStream inputStream = ctx.getResources().openRawResource(R.raw.pkcs8_card_key)) {
             RSAPrivateKey privateKey = Crypto.loadPrivateKey(inputStream);
-            byte [] valueBytes = Crypto.sign(privateKey, session.getTranscript());
+            byte[] valueBytes = Crypto.sign(privateKey, session.getTranscript());
             signature.write(new TLV(EXT_SIGNATURE, valueBytes.length, valueBytes).getTlvBytes());
             Log.i(TAG, "Signing:\n" + BytesUtils.bytesToString(session.getTranscript()) + "\n");
             Log.i(TAG, "Card key modulus: " + privateKey.getModulus());
@@ -292,7 +291,7 @@ public class ProtocolExecutor {
             throw new RuntimeException(e);
         }
 
-        Log.i(TAG,"Sending signature (sign): " + BytesUtils.bytesToString(signature.toByteArray()));
+        Log.i(TAG, "Sending signature (sign): " + BytesUtils.bytesToString(signature.toByteArray()));
         Log.i(TAG, "Signature length:" + signature.size());
         return apduWrapper.encode(signature.toByteArray());
     }
@@ -302,15 +301,15 @@ public class ProtocolExecutor {
         Log.i(TAG, BytesUtils.bytesToString(signatureMessage));
         byte[] signature = TlvUtil.getValue(signatureMessage, EXT_SIGNATURE);
         /*
-        * NOTE: At this point CARD and READER have already exchanged certificates in the EMV transaction.
-        * Therefore the reader knows the public key of the card. Since we do not have the private key of
-        * the card, we use an autogenerated key pair and here we assume that the reader knows it.
-        * */
+         * NOTE: At this point CARD and READER have already exchanged certificates in the EMV transaction.
+         * Therefore the reader knows the public key of the card. Since we do not have the private key of
+         * the card, we use an autogenerated key pair and here we assume that the reader knows it.
+         * */
         RSAPublicKey cardKey = session.getSecondaryKey();
         Log.i(TAG, "Signing:\n" + BytesUtils.bytesToString(session.getRemoteTranscript()) + "\n");
         Log.i(TAG, "Card key modulus: " + cardKey.getModulus());
-        if(! Crypto.verify(cardKey, signature, session.getRemoteTranscript())){
-            throw  new RuntimeException("Invalid signature");
+        if (!Crypto.verify(cardKey, signature, session.getRemoteTranscript())) {
+            throw new RuntimeException("Invalid signature");
         }
         session.setSignVerif(true);
         return true;

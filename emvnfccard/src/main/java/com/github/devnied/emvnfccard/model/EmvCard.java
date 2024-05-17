@@ -25,7 +25,6 @@ import java.util.List;
  * Bean used to describe data in EMV card
  *
  * @author MILLAU Julien
- *
  */
 public class EmvCard extends AbstractData {
 
@@ -126,8 +125,7 @@ public class EmvCard extends AbstractData {
     /**
      * Setter for the field aid
      *
-	 * @param aid
-	 *            the aid to set
+     * @param aid the aid to set
      */
     public void setAid(final String aid) {
         this.aid = aid;
@@ -145,8 +143,7 @@ public class EmvCard extends AbstractData {
     /**
      * Setter for the field holderLastname
      *
-	 * @param holderLastname
-	 *            the holderLastname to set
+     * @param holderLastname the holderLastname to set
      */
     public void setHolderLastname(final String holderLastname) {
         this.holderLastname = holderLastname;
@@ -164,8 +161,7 @@ public class EmvCard extends AbstractData {
     /**
      * Setter for the field holderFirstname
      *
-	 * @param holderFirstname
-	 *            the holderFirstname to set
+     * @param holderFirstname the holderFirstname to set
      */
     public void setHolderFirstname(final String holderFirstname) {
         this.holderFirstname = holderFirstname;
@@ -183,8 +179,7 @@ public class EmvCard extends AbstractData {
     /**
      * Setter for the field cardNumber
      *
-	 * @param cardNumber
-	 *            the cardNumber to set
+     * @param cardNumber the cardNumber to set
      */
     public void setCardNumber(final String cardNumber) {
         this.cardNumber = cardNumber;
@@ -202,8 +197,7 @@ public class EmvCard extends AbstractData {
     /**
      * Setter for the field expireDate
      *
-	 * @param expireDate
-	 *            the expireDate to set
+     * @param expireDate the expireDate to set
      */
     public void setExpireDate(final Date expireDate) {
         this.expireDate = expireDate;
@@ -221,8 +215,7 @@ public class EmvCard extends AbstractData {
     /**
      * Setter for the field listTransactions
      *
-	 * @param listTransactions
-	 *            the listTransactions to set
+     * @param listTransactions the listTransactions to set
      */
     public void setListTransactions(final List<EmvTransactionRecord> listTransactions) {
         this.listTransactions = listTransactions;
@@ -240,8 +233,7 @@ public class EmvCard extends AbstractData {
     /**
      * Setter for the field type
      *
-	 * @param type
-	 *            the type to set
+     * @param type the type to set
      */
     public void setType(final EmvCardScheme type) {
         this.type = type;
@@ -259,8 +251,7 @@ public class EmvCard extends AbstractData {
     /**
      * Setter for the field applicationLabel
      *
-	 * @param applicationLabel
-	 *            the applicationLabel to set
+     * @param applicationLabel the applicationLabel to set
      */
     public void setApplicationLabel(final String applicationLabel) {
         this.applicationLabel = applicationLabel;
@@ -283,8 +274,7 @@ public class EmvCard extends AbstractData {
     /**
      * Setter for the field leftPinTry
      *
-	 * @param leftPinTry
-	 *            the leftPinTry to set
+     * @param leftPinTry the leftPinTry to set
      */
     public void setLeftPinTry(final int leftPinTry) {
         this.leftPinTry = leftPinTry;
@@ -302,8 +292,7 @@ public class EmvCard extends AbstractData {
     /**
      * Setter for the field atrDescription
      *
-	 * @param atrDescription
-	 *            the atrDescription to set
+     * @param atrDescription the atrDescription to set
      */
     public void setAtrDescription(final Collection<String> atrDescription) {
         this.atrDescription = atrDescription;
@@ -321,8 +310,7 @@ public class EmvCard extends AbstractData {
     /**
      * Setter for the field service
      *
-	 * @param service
-	 *            the service to set
+     * @param service the service to set
      */
     public void setService(final Service service) {
         this.service = service;
@@ -340,8 +328,7 @@ public class EmvCard extends AbstractData {
     /**
      * Setter for the field nfcLocked
      *
-	 * @param nfcLocked
-	 *            the nfcLocked to set
+     * @param nfcLocked the nfcLocked to set
      */
     public void setNfcLocked(final boolean nfcLocked) {
         this.nfcLocked = nfcLocked;

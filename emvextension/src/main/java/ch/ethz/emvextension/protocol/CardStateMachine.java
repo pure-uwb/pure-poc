@@ -17,7 +17,7 @@ public class CardStateMachine implements StateMachine {
     private static final Map<State, State> steps;
 
     static {
-        Map<State, State> steps_tmp=  new HashMap<State, State>();
+        Map<State, State> steps_tmp = new HashMap<State, State>();
         steps_tmp.put(INIT, RECEIVE_HELLO);
         steps_tmp.put(RECEIVE_HELLO, SEND_HELLO);
         steps_tmp.put(SEND_HELLO, RANGE);
@@ -43,7 +43,7 @@ public class CardStateMachine implements StateMachine {
 
     @Override
     public String getStateString() {
-            return StateMachineUtils.stateToString(state);
+        return StateMachineUtils.stateToString(state);
     }
 
     @Override

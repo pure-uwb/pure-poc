@@ -4,9 +4,6 @@ import android.content.Context;
 import android.nfc.tech.IsoDep;
 import android.util.Log;
 
-import ch.ethz.emvextension.controller.ReaderController;
-import ch.ethz.emvextension.protocol.ProtocolModifier;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -19,9 +16,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
-import ch.ethz.pure.nfc.BuildSettings;
+import ch.ethz.emvextension.controller.ReaderController;
+import ch.ethz.emvextension.protocol.ProtocolModifier;
 import ch.ethz.pure.MainActivity;
 import ch.ethz.pure.R;
+import ch.ethz.pure.nfc.BuildSettings;
 import ch.ethz.pure.nfc.Util;
 
 public class PosEmulator extends Thread {
@@ -34,9 +33,9 @@ public class PosEmulator extends Thread {
     private Long total_time_finish;
     private Long summed;
     private final static List<String> commands = Arrays.asList("SEL1", "SEL2", "GPO", "RR1", "RR2", "RR3", "RR4", "GEN_AC",
-                                                                "SEL1_MOD", "SEL2_MOD", "GPO_MOD", "RR1_MOD", "RR2_MOD", "RR3_MOD", "RR4_MOD", "GEN_AC_MOD", "RANGING");
-    private List<String> timings;
-    private List<String> timingsMod;
+            "SEL1_MOD", "SEL2_MOD", "GPO_MOD", "RR1_MOD", "RR2_MOD", "RR3_MOD", "RR4_MOD", "GEN_AC_MOD", "RANGING");
+    private final List<String> timings;
+    private final List<String> timingsMod;
 
     public PosEmulator(MainActivity activity, IsoDep tagComm, ProtocolModifier modifier, Semaphore s) {
         this.activity = activity;
@@ -48,12 +47,12 @@ public class PosEmulator extends Thread {
         total_time_finish = null;
         summed = 0L;
         /* NOTE on Timings
-        * Timings collects the times needed for each ping pong.
-        * The GPO ping-pong contains also the DH .
-        * The GEN AC ping-pong contains also the additional signature.
-        * Timings mod collects the time needed to execute the modification.
-        * The timings_mod for GPO and GEN_AC account for the DH and the additional signature
-        * */
+         * Timings collects the times needed for each ping pong.
+         * The GPO ping-pong contains also the DH .
+         * The GEN AC ping-pong contains also the additional signature.
+         * Timings mod collects the time needed to execute the modification.
+         * The timings_mod for GPO and GEN_AC account for the DH and the additional signature
+         * */
 
         timings = new LinkedList<>();
         timingsMod = new LinkedList<>();
@@ -73,7 +72,7 @@ public class PosEmulator extends Thread {
                     }
                 }
                 Log.i("Separate", "Kill thread");
-                try{
+                try {
                     activity.getServerSocket().close();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -111,7 +110,7 @@ public class PosEmulator extends Thread {
                 Log.i(this.getName(), "[C-APDU] " + Util.bytesToHex(cmd));
                 activity.appendToLog("[C-APDU] " + Util.bytesToHex(cmd));
 
-                if(tagComm == null || !tagComm.isConnected()){
+                if (tagComm == null || !tagComm.isConnected()) {
                     return;
                 }
                 byte[] resp = tagComm.transceive(cmd);
@@ -139,18 +138,18 @@ public class PosEmulator extends Thread {
                 socket.close();
 
                 Long stop = System.nanoTime();
-                Log.i("Timer", "[STD]\t" + "Time: " + ((float)(stop - start)/1000000) +"\tModifier: "+ ((float)(end_modifier - start_modifier)/1000000) );
-                timings.add(String.format("%.2f", (float)(stop - start)/1000000));
-                timingsMod.add(String.format("%.2f", ((float)(end_modifier - start_modifier)/1000000)));
-                summed += (stop-start);
-                if(modifier.isProtocolFinished()){
+                Log.i("Timer", "[STD]\t" + "Time: " + ((float) (stop - start) / 1000000) + "\tModifier: " + ((float) (end_modifier - start_modifier) / 1000000));
+                timings.add(String.format("%.2f", (float) (stop - start) / 1000000));
+                timingsMod.add(String.format("%.2f", ((float) (end_modifier - start_modifier) / 1000000)));
+                summed += (stop - start);
+                if (modifier.isProtocolFinished()) {
                     Log.i("RelayPosEmulator", "Protocol finished");
                     break;
                 }
             }
             total_time_finish = System.nanoTime();
-            Log.i("Timer", "[TOT]\t" + "Time: " + ((float)(total_time_finish - total_time_start)/1000000));
-            Log.i("Timer", "[SUM]\t" + "Time: " + ((float)(summed)/1000000));
+            Log.i("Timer", "[TOT]\t" + "Time: " + ((float) (total_time_finish - total_time_start) / 1000000));
+            Log.i("Timer", "[SUM]\t" + "Time: " + ((float) (summed) / 1000000));
             Log.i("Timer", "#############################################################################");
             //saveTimings();
         } catch (Exception e) {
@@ -158,9 +157,9 @@ public class PosEmulator extends Thread {
         }
     }
 
-    private void saveTimings(){
+    private void saveTimings() {
         Log.i("Timings", "SAVING FILE in " + activity.getFilesDir());
-        if (!Arrays.asList(activity.fileList()).contains(BuildSettings.outputFileName)){
+        if (!Arrays.asList(activity.fileList()).contains(BuildSettings.outputFileName)) {
             try (FileOutputStream fos = activity.openFileOutput(BuildSettings.outputFileName, Context.MODE_PRIVATE)) {
                 fos.write(String.join(",", commands).getBytes());
                 fos.write("\n".getBytes());
@@ -168,8 +167,8 @@ public class PosEmulator extends Thread {
                 throw new RuntimeException(e);
             }
         }
-        try(FileOutputStream fos = activity.openFileOutput(BuildSettings.outputFileName,
-                Context.MODE_APPEND )){
+        try (FileOutputStream fos = activity.openFileOutput(BuildSettings.outputFileName,
+                Context.MODE_APPEND)) {
             fos.write(String.join(",", timings).getBytes());
             fos.write(",".getBytes());
             fos.write(String.join(",", timingsMod).getBytes());

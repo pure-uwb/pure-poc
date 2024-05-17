@@ -127,15 +127,14 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             readerSemaphore.release();
         });
         applySettings();
-        if(!mockUart){
+        if (!mockUart) {
             initializeUart();
         }
-        if(!isPOS)
-            tryToStartCardEmulator();
+        if (!isPOS) tryToStartCardEmulator();
         launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> applySettings());
     }
 
-    private void initializeUart(){
+    private void initializeUart() {
         UsbManager manager = (UsbManager) this.getBaseContext().getSystemService(Context.USB_SERVICE);
         List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager);
         if (availableDrivers.isEmpty()) {
@@ -148,7 +147,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             Log.i("UART", "Request permission");
             int flags = PendingIntent.FLAG_MUTABLE;
             String INTENT_ACTION_GRANT_USB = BuildConfig.LIBRARY_PACKAGE_NAME + ".GRANT_USB";
-            PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(INTENT_ACTION_GRANT_USB), flags);
+            PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(this, 0,
+                    new Intent(INTENT_ACTION_GRANT_USB), flags);
             manager.requestPermission(driver.getDevice(), usbPermissionIntent);
         }
     }
@@ -160,7 +160,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             int ipInt = wifiInfo.getIpAddress();
             try {
-                return InetAddress.getByAddress(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipInt).array()).getHostAddress();
+                return InetAddress.getByAddress(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
+                        .putInt(ipInt).array()).getHostAddress();
             } catch (UnknownHostException e) {
                 showErrorOrWarning(e, true);
             }
@@ -198,12 +199,13 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         mockUart = prefs.getBoolean("mock_uart", true);
         prerecordedBackend = prefs.getBoolean("prerec_backend", false);
         transparentRelay = prefs.getBoolean("transparent_relay", false);
-        Log.i("MainActivity"," Settings: "  + mockUart + prerecordedBackend + transparentRelay);
+        Log.i("MainActivity", " Settings: " + mockUart + prerecordedBackend + transparentRelay);
         //refresh GUI accordingly
         if (isPOS) {
             setTitle(R.string.pos_emulator);
             nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-            nfcAdapter.enableReaderMode(this, this, FLAG_READER_NFC_A | FLAG_READER_SKIP_NDEF_CHECK, null);
+            nfcAdapter.enableReaderMode(this, this,
+                    FLAG_READER_NFC_A | FLAG_READER_SKIP_NDEF_CHECK, null);
             //layoutStatus.setVisibility(View.VISIBLE);
             tvIP.setText(getString(R.string.ip, getLocalIpAddress()));
             tvIP.setVisibility(View.VISIBLE);
@@ -244,7 +246,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 showErrorOrWarning(e, false);
             }
 
-            nfcAdapter.enableReaderMode(this, this, FLAG_READER_NFC_A | FLAG_READER_SKIP_NDEF_CHECK, null);
+            nfcAdapter.enableReaderMode(this, this,
+                    FLAG_READER_NFC_A | FLAG_READER_SKIP_NDEF_CHECK, null);
             if (tagComm != null && tagComm.isConnected())
                 updateStatus(getString(R.string.card_connected), true);
             else updateStatus(getString(R.string.waiting_for_card), false);
@@ -257,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         //Disable reader mode when user leaves the activity
         super.onPause();
         if (isPOS) {
-            if(nfcAdapter != null){
+            if (nfcAdapter != null) {
                 nfcAdapter.disableReaderMode(this);
             }
             try {
@@ -270,34 +273,35 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
 
     public void tryToStartCardEmulator() {
-            try {
-                if (!cardStarted) {
-                    cardStarted = true;
-                    if (prerecordedBackend) {
-                        EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercard_transaction_prerec));
-                        Thread cardBackend = CardBackend.getInstance(PORT, emvTrace);
-                        if (!cardBackend.isAlive()) {
-                            cardBackend.start();
-                        }
-                        Log.i("MainActivity", "Started mock card backend");
-                        ip = getLocalIpAddress();
+        try {
+            if (!cardStarted) {
+                cardStarted = true;
+                if (prerecordedBackend) {
+                    EmvTrace emvTrace = new EmvTrace(this.getResources()
+                            .openRawResource(R.raw.mastercard_transaction_prerec));
+                    Thread cardBackend = CardBackend.getInstance(PORT, emvTrace);
+                    if (!cardBackend.isAlive()) {
+                        cardBackend.start();
                     }
+                    Log.i("MainActivity", "Started mock card backend");
+                    ip = getLocalIpAddress();
                 }
-                CardEmulation cardEmulation = CardEmulation.getInstance(NfcAdapter.getDefaultAdapter(this));
-                ComponentName cmpName = new ComponentName(this, EMVraceApduService.class);
-
-                //check that our APDU service is active
-                if (!cardEmulation.isDefaultServiceForCategory(cmpName, CardEmulation.CATEGORY_PAYMENT)) {
-                    Snackbar.make(findViewById(R.id.layout_main), R.string.service_not_active, Snackbar.LENGTH_SHORT).setAction(R.string.enable, view -> startActivity(new Intent(Settings.ACTION_NFC_PAYMENT_SETTINGS)))
-
-                            .show();
-                } else {
-                    Log.i(this.getClass().getName(), "Start card emulator");
-                    startCardEmulator();
-                }
-                } catch(Exception e){
-                    showErrorOrWarning(e, true);
             }
+            CardEmulation cardEmulation = CardEmulation.getInstance(NfcAdapter.getDefaultAdapter(this));
+            ComponentName cmpName = new ComponentName(this, EMVraceApduService.class);
+
+            //check that our APDU service is active
+            if (!cardEmulation.isDefaultServiceForCategory(cmpName, CardEmulation.CATEGORY_PAYMENT)) {
+                Snackbar.make(findViewById(R.id.layout_main), R.string.service_not_active, Snackbar.LENGTH_SHORT)
+                        .setAction(R.string.enable, view -> startActivity(new Intent(Settings.ACTION_NFC_PAYMENT_SETTINGS)))
+                        .show();
+            } else {
+                Log.i(this.getClass().getName(), "Start card emulator");
+                startCardEmulator();
+            }
+        } catch (Exception e) {
+            showErrorOrWarning(e, true);
+        }
     }
 
     public void startCardEmulator() {
@@ -360,11 +364,13 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     }
 
     public void showSuccess(final String msg, final boolean lengthShort) {
-        runOnUiThread(() -> Toast.makeText(this, msg, lengthShort ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show());
+        runOnUiThread(() -> Toast.makeText(this, msg,
+                lengthShort ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show());
     }
 
     public void showErrorOrWarning(final String msg, final boolean lengthShort) {
-        runOnUiThread(() -> Snackbar.make(findViewById(R.id.layout_main), msg, lengthShort ? Snackbar.LENGTH_SHORT : Snackbar.LENGTH_LONG).show());
+        runOnUiThread(() -> Snackbar.make(findViewById(R.id.layout_main), msg,
+                lengthShort ? Snackbar.LENGTH_SHORT : Snackbar.LENGTH_LONG).show());
     }
 
     public void showErrorOrWarning(@NonNull final Exception e, final boolean lengthShort) {
@@ -383,8 +389,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             tagComm = IsoDep.get(tag);
             tagComm.setTimeout(30000);
             try {
-                if (tagComm != null && !tagComm.isConnected())
-                    tagComm.connect();
+                if (tagComm != null && !tagComm.isConnected()) tagComm.connect();
 
             } catch (IOException e) {
                 this.showErrorOrWarning(e, true);
@@ -434,9 +439,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         }
     }
 
-    public void showSuccess(boolean success){
-        runOnUiThread(() ->{
-            if(success){
+    public void showSuccess(boolean success) {
+        runOnUiThread(() -> {
+            if (success) {
                 successIcon.setImageResource(R.drawable.checked);
             } else {
                 successIcon.setImageResource(R.drawable.cancel);
@@ -445,8 +450,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         });
     }
 
-    public void showDistance(String distance){
-        runOnUiThread(() ->{
+    public void showDistance(String distance) {
+        runOnUiThread(() -> {
             distanceTxt.setText(distance);
         });
 
@@ -454,16 +459,16 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        Log.i("MainActivity", "Evt: " + evt.getPropertyName() +"\t" + evt.getNewValue() );
-        if((evt.getPropertyName().equals("success"))){
-           this.showSuccess((boolean)evt.getNewValue());
+        Log.i("MainActivity", "Evt: " + evt.getPropertyName() + "\t" + evt.getNewValue());
+        if ((evt.getPropertyName().equals("success"))) {
+            this.showSuccess((boolean) evt.getNewValue());
         }
 
-        if(evt.getPropertyName().equals("distance")){
-           this.showDistance((String) evt.getNewValue());
+        if (evt.getPropertyName().equals("distance")) {
+            this.showDistance((String) evt.getNewValue());
         }
 
-        if(evt.getPropertyName().equals(LOG_EVT)){
+        if (evt.getPropertyName().equals(LOG_EVT)) {
             this.appendToLog((String) evt.getOldValue());
             this.appendToLog((String) evt.getNewValue());
 

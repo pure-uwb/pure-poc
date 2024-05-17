@@ -301,7 +301,6 @@ public final class CommandAPDU {
             // case 3e
             this.nc = l2;
             this.dataOffset = 7;
-            return;
         } else if (apdu.length == 4 + 5 + l2) {
             // case 4e
             this.nc = l2;
@@ -544,7 +543,7 @@ public final class CommandAPDU {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof CommandAPDU == false) {
+        if (!(obj instanceof CommandAPDU)) {
             return false;
         }
         CommandAPDU other = (CommandAPDU) obj;

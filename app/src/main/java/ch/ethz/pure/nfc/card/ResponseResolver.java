@@ -4,13 +4,12 @@ import static ch.ethz.pure.nfc.Util.bytesToHex;
 
 import android.util.Log;
 
-import ch.ethz.emvextension.protocol.ProtocolModifier;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
 
+import ch.ethz.emvextension.protocol.ProtocolModifier;
 import ch.ethz.pure.MainActivity;
 import ch.ethz.pure.nfc.Util;
 import ch.ethz.pure.nfc.card.hce.EMVraceApduService;
@@ -40,7 +39,7 @@ public class ResponseResolver extends Thread {
     public void run() {
         try {
             Log.i("ResponderResolver", "CMD:" + bytesToHex(cmd));
-            Log.i("ResponderResolver", "IP: "+ ip);
+            Log.i("ResponderResolver", "IP: " + ip);
             Log.i("ResponderResolver", "PORT" + port);
             //create socket
             Socket socket = new Socket(ip, port);
@@ -63,9 +62,7 @@ public class ResponseResolver extends Thread {
                 if (isPPSECmd && responseOK) { //launch Wallet Activity
                     Log.i("ResponseResolver", "Start card activity");
                     activity.startCardEmulator();
-                }
-
-                else if (!isPPSECmd && hostApduService != null){
+                } else if (!isPPSECmd && hostApduService != null) {
                     // HERE ON gen_ac_command do:
                     // 1. extract AC
                     // 2. execute extension protocol
@@ -83,7 +80,7 @@ public class ResponseResolver extends Thread {
             socket.close();
 
         } catch (Exception e) {
-             Log.e(this.getName(), e.toString());
+            Log.e(this.getName(), e.toString());
             //activity.showErrorOrWarning(e, false);
         }
     }

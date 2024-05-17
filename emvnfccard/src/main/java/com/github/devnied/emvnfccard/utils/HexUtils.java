@@ -1,4 +1,4 @@
-package ch.ethz.emvextension.Apdu;
+package com.github.devnied.emvnfccard.utils;
 
 public final class HexUtils {
     // This code has been taken from Apache commons-codec 1.7 (License: Apache 2.0)

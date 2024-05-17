@@ -23,7 +23,7 @@ public class EmvTrace {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] tokens = line.split("]");
-                if (tokens.length != 2){
+                if (tokens.length != 2) {
                     break;
                 }
                 String TAG = this.getClass().toString();
@@ -59,7 +59,7 @@ public class EmvTrace {
         return responsesIterator.next();
     }
 
-    public void resetResponses(){
+    public void resetResponses() {
         responsesIterator = responses.iterator();
     }
 
