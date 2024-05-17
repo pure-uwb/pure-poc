@@ -19,7 +19,7 @@ public abstract class SimpleAsyncTask extends AsyncTask<Void, Void, Object> {
             doInBackground();
         } catch (Exception e) {
             result = e;
-            Log.e(SimpleAsyncTask.class.getName(), e.getMessage(), e);
+            Log.e("SimpleAsyncTask", e.toString());
         }
 
         return result;

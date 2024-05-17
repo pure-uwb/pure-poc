@@ -47,7 +47,7 @@ import fr.devnied.bitlib.BytesUtils;
  * */
 public class Crypto {
     private static final EmvKeyReader keyReader = new EmvKeyReader();
-
+    private static final String TAG = "Crypto";
 
     public static RSAPrivateKey loadPrivateKey(InputStream inputStream) {
         KeyFactory keyFactory;
@@ -56,7 +56,7 @@ public class Crypto {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-        PKCS8EncodedKeySpec keySpec = null;
+        PKCS8EncodedKeySpec keySpec;
         try {
             keySpec = new PKCS8EncodedKeySpec(IOUtils.toByteArray(inputStream));
         } catch (IOException e) {
@@ -76,7 +76,7 @@ public class Crypto {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-        X509EncodedKeySpec keySpec = null;
+        X509EncodedKeySpec keySpec;
         try {
             keySpec = new X509EncodedKeySpec(IOUtils.toByteArray(inputStream));
         } catch (IOException e) {
@@ -121,7 +121,7 @@ public class Crypto {
 
     public static boolean verify(RSAPublicKey pk, byte[] signature, byte[] message) {
         //Let's check the signature
-        Signature publicSignature = null;
+        Signature publicSignature;
 
         try {
             publicSignature = Signature.getInstance("SHA256withRSA");
@@ -164,8 +164,6 @@ public class Crypto {
     public static byte[] encodePublicKey(ECPublicKey pk) {
         byte[] x_byte = pk.getW().getAffineX().toByteArray();
         byte[] y_byte = pk.getW().getAffineY().toByteArray();
-        Log.i("DEBUG", "Pk: " + HexUtils.bin2hex(x_byte) + "Len: " + x_byte.length);
-        Log.i("DEBUG", "Pk: " + HexUtils.bin2hex(y_byte) + "Len: " + y_byte.length);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
             baos.write((byte) x_byte.length);
@@ -175,8 +173,7 @@ public class Crypto {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        byte[] encoded = baos.toByteArray();//key.getPublic().getEncoded();
-        return encoded;
+        return baos.toByteArray();
     }
 
     public static PublicKey decodePublicKey(byte[] pk) {
@@ -185,14 +182,11 @@ public class Crypto {
         int y_len = pk[x_len + 1];
         byte[] y_byte = Arrays.copyOfRange(pk, 2 + x_len, 2 + x_len + y_len);
 
-        Log.i("DEBUG", "x_len:" + x_len);
-        Log.i("DEBUG", "x_len:" + y_len);
-
-        Log.i("DEBUG", "x: " + HexUtils.bin2hex(x_byte));
-        Log.i("DEBUG", "y: " + HexUtils.bin2hex(y_byte));
+        Log.i(TAG, "ECC x: " + HexUtils.bin2hex(x_byte));
+        Log.i(TAG, "ECC y: " + HexUtils.bin2hex(y_byte));
 
         ECPoint pubPoint = new ECPoint(new BigInteger(x_byte), new BigInteger(y_byte));
-        AlgorithmParameters parameters = null;
+        AlgorithmParameters parameters;
         try {
             parameters = AlgorithmParameters.getInstance("EC");
         } catch (NoSuchAlgorithmException e) {
@@ -203,7 +197,7 @@ public class Crypto {
         } catch (InvalidParameterSpecException e) {
             throw new RuntimeException(e);
         }
-        ECParameterSpec ecParameters = null;
+        ECParameterSpec ecParameters;
         try {
             ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
         } catch (InvalidParameterSpecException e) {
@@ -211,14 +205,14 @@ public class Crypto {
         }
         ECPublicKeySpec pubSpec = new ECPublicKeySpec(pubPoint, ecParameters);
 
-        KeyFactory keyFactory = null; // Tried ECDSA as well
+        KeyFactory keyFactory; // Tried ECDSA as well
         try {
             keyFactory = KeyFactory.getInstance("EC");
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
 
-        ECPublicKey ecPublicKey = null; // <-- exception here
+        ECPublicKey ecPublicKey; // <-- exception here
         try {
             ecPublicKey = (ECPublicKey) keyFactory.generatePublic(pubSpec);
         } catch (InvalidKeySpecException e) {

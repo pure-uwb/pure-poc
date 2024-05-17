@@ -69,6 +69,7 @@ import ch.ethz.emvextension.protocol.ProtocolModifier;
 import ch.ethz.pure.backend.CardBackend;
 import ch.ethz.pure.backend.EmvTrace;
 import ch.ethz.pure.backend.ReaderBackend;
+import ch.ethz.pure.nfc.ProtocolModifierImpl;
 import ch.ethz.pure.nfc.card.hce.EMVraceApduService;
 import ch.ethz.pure.nfc.pos.NfcChannel;
 import ch.ethz.pure.nfc.pos.PosEmulator;
@@ -104,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     private ImageView successIcon;
     private TextView distanceTxt;
     private boolean cardStarted = false;
+
+    private final String TAG = MainActivity.class.getName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         // Open a connection to the first available driver.
         UsbSerialDriver driver = availableDrivers.get(0);
         if (!manager.hasPermission(driver.getDevice())) {
-            Log.i("UART", "Request permission");
+            Log.i(TAG, "Request permission");
             int flags = PendingIntent.FLAG_MUTABLE;
             String INTENT_ACTION_GRANT_USB = BuildConfig.LIBRARY_PACKAGE_NAME + ".GRANT_USB";
             PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(this, 0,
@@ -183,7 +186,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             if (isPOS) logBackup = tvLog.getText();
             launcher.launch(new Intent(this, SettingsActivity.class));
@@ -199,7 +201,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         mockUart = prefs.getBoolean("mock_uart", true);
         prerecordedBackend = prefs.getBoolean("prerec_backend", false);
         transparentRelay = prefs.getBoolean("transparent_relay", false);
-        Log.i("MainActivity", " Settings: " + mockUart + prerecordedBackend + transparentRelay);
+        Log.i(TAG, " Settings:" + "\nmockUart:\t" + mockUart +
+                                       "\nprerecordedBackend:\t" + prerecordedBackend  +
+                                       "\ntransparentRelay:\t" + transparentRelay);
         //refresh GUI accordingly
         if (isPOS) {
             setTitle(R.string.pos_emulator);
@@ -239,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
         if (isPOS) {
             try {
-                Log.i("MainActivity", "Start Socket on" + PORT_READER_TO_BACKEND);
+                Log.i(TAG, "Start Socket on " + PORT_READER_TO_BACKEND);
                 serverSocket = new ServerSocket(PORT_READER_TO_BACKEND);
 //                serverSocket.setSoTimeout(0);
             } catch (IOException e) {
@@ -283,7 +287,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                     if (!cardBackend.isAlive()) {
                         cardBackend.start();
                     }
-                    Log.i("MainActivity", "Started mock card backend");
+                    Log.i(TAG, "Started mock card backend");
                     ip = getLocalIpAddress();
                 }
             }
@@ -296,7 +300,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                         .setAction(R.string.enable, view -> startActivity(new Intent(Settings.ACTION_NFC_PAYMENT_SETTINGS)))
                         .show();
             } else {
-                Log.i(this.getClass().getName(), "Start card emulator");
+                Log.i(TAG, "Start card emulator");
                 startCardEmulator();
             }
         } catch (Exception e) {
@@ -305,7 +309,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     }
 
     public void startCardEmulator() {
-        Log.i("MainActivity", ip);
         EMVraceApduService.ip = ip;
         EMVraceApduService.port = PORT;
         runOnUiThread(() -> startActivity(new Intent(this, CardActivity.class)));
@@ -405,23 +408,23 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 try {
                     serverSocket.close();
                     serverSocket = new ServerSocket(PORT_READER_TO_BACKEND);
-                    Log.i("MainActivity", "Start server socket on " + PORT_READER_TO_BACKEND);
+                    Log.i(TAG, "Start server socket on " + PORT_READER_TO_BACKEND);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-                Log.i("MainActivity", "New Tag");
+                Log.i(TAG, "New Tag");
 
                 updateStatus(getString(R.string.card_connected), true);
                 ProtocolModifier modifier = Provider.getModifier(this, true);
                 modifier.setNfcChannel(new NfcChannel(tagComm));
                 List<Thread> newThreadList = new LinkedList<>();
                 for (Thread thread : threadList) {
-                    Log.i("MainActivity", "Interrupt thread:" + thread);
+                    Log.i(TAG, "Interrupt thread:" + thread);
                     thread.interrupt();
                 }
                 if (prerecordedBackend) {
                     EmvTrace emvTrace = new EmvTrace(this.getResources().openRawResource(R.raw.mastercard_transaction_prerec));
-                    Log.i("MainActivity", "Reader Backend create");
+                    Log.i(TAG, "Reader Backend create");
                     t = new ReaderBackend(getLocalIpAddress(), PORT_READER_TO_BACKEND, emvTrace, readerSemaphore);
                     t.start();
                     newThreadList.add(t);
@@ -432,7 +435,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 try {
                     t.join();
                 } catch (InterruptedException e) {
-                    Log.e("MainActivity", "Thread interrupted");
+                    Log.e(TAG, "Thread interrupted");
                 }
                 threadList = newThreadList;
             }
@@ -459,7 +462,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        Log.i("MainActivity", "Evt: " + evt.getPropertyName() + "\t" + evt.getNewValue());
         if ((evt.getPropertyName().equals("success"))) {
             this.showSuccess((boolean) evt.getNewValue());
         }

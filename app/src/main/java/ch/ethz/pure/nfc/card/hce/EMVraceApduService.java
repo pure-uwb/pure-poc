@@ -7,6 +7,7 @@ import android.util.Log;
 import java.util.Arrays;
 
 import ch.ethz.pure.CardActivity;
+import ch.ethz.pure.nfc.ProtocolModifierImpl;
 import ch.ethz.pure.nfc.Util;
 
 public class EMVraceApduService extends HostApduService {
@@ -15,17 +16,18 @@ public class EMVraceApduService extends HostApduService {
     public static CommandDispatcher dispatcher;
     public static String ip;
     public static int port;
+    private final String TAG = EMVraceApduService.class.getName();
+
 
     @Override
     public byte[] processCommandApdu(byte[] commandApdu, Bundle extras) {
         try {
-            Log.i(this.getClass().getName(), "Received command " + Util.bytesToHex(commandApdu));
             if (cardActivity != null)
                 cardActivity.onApduCommandReceived(commandApdu);
             dispatcher.dispatch(this, ip, port, commandApdu, false, null);
         } catch (Exception e) {
-            Log.e(this.getClass().getName(), e.toString());
-            Log.e(this.getClass().getName(), Arrays.toString(e.getStackTrace()));
+            Log.e(TAG, e.toString());
+            Log.e(TAG, Arrays.toString(e.getStackTrace()));
         }
         return Util.EMPTY_APDU_RESPONSE;//tell the HCE to wait until the response has been resolved
     }
@@ -36,7 +38,7 @@ public class EMVraceApduService extends HostApduService {
             if (cardActivity != null)
                 cardActivity.onApduServiceDeactivated(reason);
         } catch (Exception e) {
-            Log.e(this.getClass().getName(), e.toString());
+            Log.e(TAG, e.toString());
         }
     }
 }

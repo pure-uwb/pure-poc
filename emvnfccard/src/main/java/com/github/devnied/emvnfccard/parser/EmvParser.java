@@ -270,7 +270,7 @@ public class EmvParser {
         List<byte[]> ret = new ArrayList<byte[]>();
         List<TLV> listTlv = TlvUtil.getlistTLV(pData, EmvTags.AID_CARD, EmvTags.KERNEL_IDENTIFIER);
         for (TLV tlv : listTlv) {
-            if (tlv.getTag() == EmvTags.KERNEL_IDENTIFIER && ret.size() != 0) {
+            if (tlv.getTag() == EmvTags.KERNEL_IDENTIFIER && !ret.isEmpty()) {
                 ret.add(ArrayUtils.addAll(ret.get(ret.size() - 1), tlv.getValueBytes()));
             } else {
                 ret.add(tlv.getValueBytes());

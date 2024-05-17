@@ -28,7 +28,6 @@ public class ReaderBackend extends Thread {
     @Override
     public void run() {
         try {
-            Log.i(TAG, "On thread" + Thread.currentThread());
             while (emvTrace.commandsHasNext()) {
 
                 if (Thread.interrupted()) {
@@ -41,7 +40,6 @@ public class ReaderBackend extends Thread {
                 //write APDU command to socket
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                 out.write(cmd);
-                Log.i(TAG, "Sent CMD: " + bytesToHex(cmd) + "by thread" + Thread.currentThread());
                 //read APDU response
                 DataInputStream in = new DataInputStream(socket.getInputStream());
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();

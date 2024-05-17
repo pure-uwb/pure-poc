@@ -221,17 +221,6 @@ public final class EmvTags {
 	public static final ITag KERNEL_IDENTIFIER = new TagImpl("9f2a", TagValueTypeEnum.BINARY, "The value to be appended to the ADF Name in the data field of the SELECT command, if the Extended Selection Support flag is present and set to 1", "");
 	// MasterCard Tags
 
-//	public static final ITag MASTERCARD_UPPER_OFFLINE_AMOUNT = new TagImpl("9f52", TagValueTypeEnum.BINARY, "Upper Cumulative Domestic Offline Transaction Amount", "Issuer specified data element indicating the required maximum cumulative offline amount allowed for the application before the transaction goes online.");
-
-	// //EMV-CAP tags (see also VISA Tags)
-	// //9f55 01 c0
-	// //9f55 01 00
-	// public static final Tag TAG_9f55 = new TagImpl("9f55", TagValueTypeEnum.BINARY, "?", "");
-
-	// EMV Cap
-	// 9f56 0c 0f00007fffffe00000000000
-	// 9f56 1d 00007fffffe00000000000000000000000000000000000000000000000
-	// 9f56 0b 00 00 7f ff ff 00 00 00 00 00 00
 	public static final ITag TAG_9f56 = new TagImpl("9f56", TagValueTypeEnum.BINARY, "?", "");
 
 	// Example: BER-TLV[9f6c, 02 (raw 02), 0001]
@@ -269,9 +258,6 @@ public final class EmvTags {
 	// These are specified in EMV Contactless (Book C-2) "MasterCard"
 //	public static final ITag OFFLINE_ACCUMULATOR_BALANCE = new TagImpl("9f50", TagValueTypeEnum.BINARY, "Offline Accumulator Balance", "Represents the amount of offline spending available in the Card.");
 	// 9f51 03 9f 37 04
-//	public static final ITag DRDOL = new TagImpl("9f51", TagValueTypeEnum.BINARY, "DRDOL", "A data object in the Card that provides the Kernel with a list of data objects that must be passed to the Card in the data field of the RECOVER AC command");
-//	public static final ITag TRANSACTION_CATEGORY_CODE = new TagImpl("9f53", TagValueTypeEnum.BINARY, "Transaction Category Code", "");
-//	public static final ITag DS_ODS_CARD = new TagImpl("9f54", TagValueTypeEnum.BINARY, "DS ODS Card", "");
 	public static final ITag MOBILE_SUPPORT_INDICATOR = new TagImpl("9f55", TagValueTypeEnum.BINARY, "Mobile Support Indicator", "");
 	public static final ITag DSDOL = new TagImpl("9f5b", TagValueTypeEnum.BINARY, "DSDOL", "");
 	public static final ITag DS_REQUESTED_OPERATOR_ID = new TagImpl("9f5c", TagValueTypeEnum.BINARY, "DS Requested Operator ID", "");

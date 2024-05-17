@@ -9,6 +9,7 @@ import java.util.Arrays;
 
 import at.zweng.emv.utils.EmvParsingException;
 import ch.ethz.emvextension.channel.Channel;
+import ch.ethz.emvextension.controller.ReaderController;
 import ch.ethz.emvextension.protocol.ProtocolModifier;
 import ch.ethz.pure.MainActivity;
 import ch.ethz.pure.nfc.Util;
@@ -19,6 +20,9 @@ public class CommandDispatcherImpl extends Channel implements ch.ethz.pure.nfc.c
     EMVraceApduService hostApduService;
     ProtocolModifier modifier;
     boolean transparentRelay;
+
+    private final String TAG =  CommandDispatcherImpl.class.getName();
+
 
     public CommandDispatcherImpl(ProtocolModifier modifier, boolean transparentRelay) {
         this.modifier = modifier;
@@ -34,7 +38,6 @@ public class CommandDispatcherImpl extends Channel implements ch.ethz.pure.nfc.c
                 this.notifyAllListeners(EVT_CMD, null, null);
             }).start();
             if (!isExtensionCommand(cmd) || transparentRelay) {
-                Log.i("Dispatcher", "EMV command: " + Util.bytesToHex(cmd));
                 ResponseResolver responseResolver = new ResponseResolver(hostApduService, ip, port,
                         cmd, false, null, modifier);
 

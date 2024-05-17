@@ -45,7 +45,6 @@ public class CardController extends PaymentController {
 
     private void handleEmvEvent(PropertyChangeEvent evt) {
         if (evt.getPropertyName().equals(EVT_CMD)) {
-            Log.i(TAG, "Received command");
             byte[] cmd = emvChannel.read();
             CommandEnum command;
             try {
@@ -64,13 +63,11 @@ public class CardController extends PaymentController {
                         writeKey = false;
                         start = System.nanoTime();
                         byte[] key = protocol.programKey(paymentSession);
-                        Log.i("CardController", "Write key to board: " + bin2hex(key));
-                        //key = new byte[]{(byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A',
-                        //                (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A', (byte)'A'};
+                        Log.i(TAG, "Write ranging key to board (" + bin2hex(key) + ")");
                         try {
                             boardChannel.write(key);
                         } catch (Exception e) {
-                            Log.e("Controller", "UART FAIL" + e);
+                            Log.e(TAG, "UART FAIL" + e);
                         }
                     }
                     break;
@@ -87,8 +84,6 @@ public class CardController extends PaymentController {
                     paymentSession.step();
                     emvChannel.write(protocol.createCardHello(paymentSession));
                     paymentSession.step();
-                    Log.i("CardController", "permits: " + parsingSemaphore.availablePermits());
-                    Log.i("CardController", "Semaphore hashcode: " + parsingSemaphore.toString());
                     uwbSemaphore = new Semaphore(0);
                     break;
                 case EXT_SIGN:
@@ -99,7 +94,6 @@ public class CardController extends PaymentController {
                         throw new RuntimeException(e);
                     }
                     paymentSession.setAC(AC.getAC());
-                    Log.i(TAG, "INS_SIG");
                     emvChannel.write(protocol.sendSignature(paymentSession));
                     paymentSession.step();
                     protocol.finish(paymentSession);

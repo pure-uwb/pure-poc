@@ -11,6 +11,7 @@ import java.net.Socket;
 
 import ch.ethz.emvextension.protocol.ProtocolModifier;
 import ch.ethz.pure.MainActivity;
+import ch.ethz.pure.nfc.ProtocolModifierImpl;
 import ch.ethz.pure.nfc.Util;
 import ch.ethz.pure.nfc.card.hce.EMVraceApduService;
 
@@ -23,6 +24,8 @@ public class ResponseResolver extends Thread {
     private final byte[] cmd;
     private final boolean isPPSECmd;
     private final ProtocolModifier modifier;
+
+    private final String TAG = ResponseResolver.class.getName();
 
     public ResponseResolver(EMVraceApduService hostApduService, String ip, int port,
                             byte[] cmd, boolean isPPSECmd, MainActivity activity, ProtocolModifier modifier) {
@@ -37,13 +40,16 @@ public class ResponseResolver extends Thread {
 
     @Override
     public void run() {
+        // Once a command cmd is received:
+        // 1. connect to the backend at ip:port
+        // 2. Get the response
+        // 3. Send the response back in the NFC channel
         try {
-            Log.i("ResponderResolver", "CMD:" + bytesToHex(cmd));
-            Log.i("ResponderResolver", "IP: " + ip);
-            Log.i("ResponderResolver", "PORT" + port);
+            Log.i(TAG, "CMD:" + bytesToHex(cmd));
+            Log.i(TAG, "Connect to backend: " + ip + ":" + port);
             //create socket
             Socket socket = new Socket(ip, port);
-            Log.i("ResponseResolver", "Connected to" + socket);
+
             //write APDU command to socket
             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
             out.write(cmd);
@@ -52,7 +58,7 @@ public class ResponseResolver extends Thread {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
             int length = in.read(buffer);
-            Log.i(this.getName(), "Read " + length + "bytes");
+
             //process APDU response accordingly
             if (length >= 0 && length < 1024) {
                 baos.write(buffer, 0, length);
@@ -60,7 +66,7 @@ public class ResponseResolver extends Thread {
                 boolean responseOK = Util.responseOK(resp);
 
                 if (isPPSECmd && responseOK) { //launch Wallet Activity
-                    Log.i("ResponseResolver", "Start card activity");
+                    Log.i(TAG, "Start card activity");
                     activity.startCardEmulator();
                 } else if (!isPPSECmd && hostApduService != null) {
                     // HERE ON gen_ac_command do:
@@ -69,7 +75,7 @@ public class ResponseResolver extends Thread {
                     // 3. Send AC to the socket only if extension protocol succeeded
                     resp = modifier.parse(cmd, resp);
                     hostApduService.sendResponseApdu(resp);
-                    Log.i("ResponseResolver", "RESP: " + bytesToHex(resp));
+                    Log.i(TAG, "RESP: " + bytesToHex(resp));
                 }
             }
 
@@ -80,8 +86,7 @@ public class ResponseResolver extends Thread {
             socket.close();
 
         } catch (Exception e) {
-            Log.e(this.getName(), e.toString());
-            //activity.showErrorOrWarning(e, false);
+            Log.e(TAG, e.toString());
         }
     }
 }

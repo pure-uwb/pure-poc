@@ -51,7 +51,7 @@ public class CardBackend extends Thread {
                 byte[] cmd = baos.toByteArray();
                 if (BytesUtils.bytesToStringNoSpace(cmd).equals(SELECT_1)) {
                     emvTrace.resetResponses();
-                    Log.i(TAG, "Received first select, reset responces");
+                    Log.i(TAG, "Reset responces");
                 }
 
                 byte[] resp = emvTrace.getResponse();

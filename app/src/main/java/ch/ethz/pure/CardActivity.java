@@ -21,6 +21,7 @@ import java.util.List;
 
 import ch.ethz.emvextension.protocol.ProtocolModifier;
 import ch.ethz.pure.nfc.BuildSettings;
+import ch.ethz.pure.nfc.ProtocolModifierImpl;
 import ch.ethz.pure.nfc.Util;
 import ch.ethz.pure.nfc.card.hce.CommandDispatcherImpl;
 import ch.ethz.pure.nfc.card.hce.EMVraceApduService;
@@ -32,6 +33,7 @@ public class CardActivity extends AppCompatActivity {
     private TextView tvMsg;
     private boolean transacting, receivedGPO;
     private final boolean isMock = true;
+    private final String TAG = CardActivity.class.getName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +61,7 @@ public class CardActivity extends AppCompatActivity {
         // Open a connection to the first available driver.
         UsbSerialDriver driver = availableDrivers.get(0);
         if (!manager.hasPermission(driver.getDevice())) {
-            Log.i("UART", "Request permission");
+            Log.i(TAG, "Request permission");
             int flags = PendingIntent.FLAG_MUTABLE;
             String INTENT_ACTION_GRANT_USB = BuildConfig.LIBRARY_PACKAGE_NAME + ".GRANT_USB";
             PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(INTENT_ACTION_GRANT_USB), flags);
@@ -81,7 +83,7 @@ public class CardActivity extends AppCompatActivity {
     }
 
     public void onApduServiceDeactivated(int reason) {
-        Log.i(this.getClass().getName(), "ApduServiceDeactivated");
+        Log.i(TAG, "ApduServiceDeactivated");
         if (receivedGPO && transacting && reason == 0) {
             receivedGPO = transacting = false;
             runOnUiThread(() -> {

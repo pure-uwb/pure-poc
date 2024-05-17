@@ -30,6 +30,7 @@ public class EmvParserJob extends Thread {
     private final Activity activity;
     private final int ca_res_id;
 
+    private final String TAG =  EmvParserJob.class.getName();
     public EmvParserJob(EmvCard card, Semaphore s, byte[] genAcResponse, ApplicationCryptogram AC, Activity activity, int ca_res_id) {
         this.card = card;
         this.s = s;
@@ -54,8 +55,6 @@ public class EmvParserJob extends Thread {
         AC.setAC(ACBytes);
         s.release();
         Long stop = System.nanoTime();
-        Log.i("Timer", "[PRS]\t" + "Time: " + ((float) (stop - start) / 1000000));
-
     }
 
     private byte[] getACFromSdad(byte[] sdad) {
@@ -63,7 +62,7 @@ public class EmvParserJob extends Thread {
             RootCaManager rootCaManager = new RootCaManager(activity, ca_res_id);
 
             // Parse the card
-            Log.i(this.getName(), "AID: " + card.getAid().substring(0, 10));
+            Log.i(TAG, "Getting AC from SDAD");
             final RootCa rootCaForCardScheme = rootCaManager.getCaForRid(card.getAid().substring(0, 10));
             final CaPublicKey caKey = rootCaForCardScheme.getCaPublicKeyWithIndex(card.getCaPublicKeyIndex());
             EmvKeyReader keyReader = new EmvKeyReader();
@@ -73,12 +72,12 @@ public class EmvParserJob extends Thread {
             }
             if (notEmpty(card.getIssuerPublicKeyCertificate()) &&
                     notEmpty(card.getIssuerPublicKeyExponent())) {
-                Log.i(this.getName(), "Issuer certificate");
+                Log.i(TAG, "Parsed issuer certificate");
                 final IssuerIccPublicKey issuerKey = keyReader.parseIssuerPublicKey(caKey, card.getIssuerPublicKeyCertificate(),
                         card.getIssuerPublicKeyRemainder(), card.getIssuerPublicKeyExponent());
                 if (notEmpty(card.getIccPublicKeyCertificate()) &&
                         notEmpty(card.getIccPublicKeyExponent())) {
-                    Log.i(this.getName(), "Card certificate");
+                    Log.i(TAG, "Parsed card certificate");
                     final EmvPublicKey iccKey = keyReader.parseIccPublicKey(issuerKey, card.getIccPublicKeyCertificate(),
                             card.getIccPublicKeyRemainder(), card.getIccPublicKeyExponent());
                     byte[] sdad_rec = calculateRSA(sdad, iccKey.getPublicExponent(), iccKey.getModulus());
@@ -86,12 +85,12 @@ public class EmvParserJob extends Thread {
                 }
             }
         } catch (Exception e) {
-            Log.e("EmvParserJob", e.toString());
+            Log.e(TAG, e.toString());
         }
         return null;
     }
 
     private void log(String msg) {
-        Log.i("EmvParserJob", msg);
+        Log.i(TAG, msg);
     }
 }

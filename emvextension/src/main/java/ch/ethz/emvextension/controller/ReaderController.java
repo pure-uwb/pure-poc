@@ -16,6 +16,7 @@ import java.util.concurrent.Semaphore;
 
 import ch.ethz.emvextension.Crypto;
 import ch.ethz.emvextension.channel.Channel;
+import ch.ethz.emvextension.channel.UartChannel;
 import ch.ethz.emvextension.protocol.ApplicationCryptogram;
 import ch.ethz.emvextension.protocol.ProtocolExecutor;
 import ch.ethz.emvextension.protocol.ReaderStateMachine;
@@ -26,6 +27,7 @@ public class ReaderController extends PaymentController {
     private static ReaderController controller = null;
     private static Activity activity;
     public static final String LOG_EVT = "log_event";
+    private final String TAG =  ReaderController.class.getName();
 
     public static ReaderController getInstance(Channel emvChannel, Channel boardChannel, ProtocolExecutor protocol, Activity activity) {
         if (controller == null) {
@@ -100,13 +102,12 @@ public class ReaderController extends PaymentController {
             paymentSession.step();
             start_uwb = System.nanoTime();
             byte[] key = protocol.programKey(paymentSession);
-            Log.i("ReaderController", "Write key to board: " + bin2hex(key));
+            Log.i(TAG, "Write ranging key to board (" + bin2hex(key) + ")");
             boardChannel.write(key);
         }).start();
     }
 
     private void handleBoardEvent(PropertyChangeEvent evt) {
-        Log.i("ReaderController", "Event: " + evt.getPropertyName());
         protocol.parseTimingReport((byte[]) evt.getNewValue(), paymentSession);
         stop_uwb = System.nanoTime();
         ranging_time = ((float) (stop_uwb - start_uwb)) / 1000000;
@@ -115,17 +116,14 @@ public class ReaderController extends PaymentController {
     }
 
     public void authenticate() {
-        Log.i("ReaderController", "Authenticate");
+        Log.i("ReaderController", "Authenticate extension");
         paymentSession.step();
         byte[] cmd = protocol.getSignatureCommand();
         emvChannel.write(cmd);
         byte[] res = emvChannel.read();
         log(cmd, res);
         try {
-            Long start = System.nanoTime();
             parsingSemaphore.acquire();
-            Long stop = System.nanoTime();
-            Log.i("Timer", "[SEM]\t" + "Time: " + ((float) (stop - start) / 1000000));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

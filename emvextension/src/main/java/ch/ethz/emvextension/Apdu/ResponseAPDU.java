@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 public class ResponseAPDU {
     final byte[] apdu;
+    private final String TAG = "ResponseAPDU";
 
     public ResponseAPDU(byte[] bytes) {
         if (bytes.length < 2) {
@@ -43,9 +44,7 @@ public class ResponseAPDU {
         int dataOffset = 2;
         apdu[apdu.length - 2] = (byte) sw1;
         apdu[apdu.length - 1] = (byte) sw2;
-        Log.i("APDU", "Data:" + getHex(data));
         System.arraycopy(data, 0, apdu, 0, data.length);
-        Log.i("APDU", "apdu:" + getHex(apdu));
     }
 
     private String getHex(byte[] bytes) {

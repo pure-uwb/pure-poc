@@ -29,6 +29,7 @@ import fr.devnied.bitlib.BytesUtils;
  * @author Johannes Zweng (johannes@zweng.at) on 23.10.17.
  */
 public class EmvKeyReader {
+    private final String TAG = "EmvKeyReader";
 
     // EMV Book 2 (v4.3)
     // https://www.emvco.com/wp-content/uploads/2017/05/EMV_v4.3_Book_2_Security_and_Key_Management_20120607061923900.pdf
@@ -120,7 +121,7 @@ public class EmvKeyReader {
                 issuerPublicKey.getModulus());
         final RecoveredIccPublicKey cert = this.parseIccPublicKeyCert(recoveredBytes,
                 issuerPublicKey.getModulusBytes().length);
-        Log.i("EmvReader", "ICC certificate:\n" + cert);
+        Log.i(TAG, "ICC certificate:\n" + cert);
         byte[] encoded = encodeIccPublicKeyCert(cert, null);
         Date expirationDate = parseDate(cert.certExpirationDate);
         RecoveredIccPublicKey tmp = this.parseIccPublicKeyCert(encoded,

@@ -29,16 +29,7 @@ public class TransparentProtocolModifier implements ProtocolModifier {
 
     @Override
     public byte[] parse(byte[] cmd, byte[] res) throws EmvParsingException {
-        byte[] cmdEnum = Arrays.copyOf(cmd, cmd.length);
-        if (cmd[0] == (byte) 0x80 & cmd[1] == (byte) 0xAE) {
-            // NOTE: In GEN AC, P1 is variable. Enum looks for P1 = 0x00 to recognise GEN AC.
-            cmdEnum[2] = (byte) 0x00;
-        }
-        if (cmd[0] == (byte) 0x00 & cmd[1] == (byte) 0xB2) {
-            cmdEnum[2] = (byte) 0x00;
-            cmdEnum[3] = (byte) 0x00;
-        }
-        CommandEnum command = getCommandEnum(cmdEnum);
+        CommandEnum command = getCommandEnum(cmd);
         switch (command) {
             case READ_RECORD:
                 parser.extractCardHolderName(res);

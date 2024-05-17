@@ -180,7 +180,6 @@ public class Hkdf {
     private Mac initMac(SecretKey key) {
         Mac mac;
         try {
-            Log.i("Hkdf", provider.getInfo());
             mac = Mac.getInstance(hash.getAlgorithm(), provider);
             mac.init(key);
             return mac;

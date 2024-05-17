@@ -19,6 +19,7 @@ import com.hoho.android.usbserial.util.SerialInputOutputManager;
 import java.io.IOException;
 import java.util.List;
 
+import ch.ethz.emvextension.jobs.EmvParserJob;
 import fr.devnied.bitlib.BytesUtils;
 
 public class UartChannel extends Channel implements SerialInputOutputManager.Listener {
@@ -30,6 +31,8 @@ public class UartChannel extends Channel implements SerialInputOutputManager.Lis
     private final int messageSize = 25;
     private int received = 0;
     private final byte[] messageBuf;
+    private final String TAG =  UartChannel.class.getName();
+
     private static final String INTENT_ACTION_GRANT_USB = BuildConfig.LIBRARY_PACKAGE_NAME + ".GRANT_USB";
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -66,7 +69,7 @@ public class UartChannel extends Channel implements SerialInputOutputManager.Lis
         // Open a connection to the first available driver.
         UsbSerialDriver driver = availableDrivers.get(0);
         if (!manager.hasPermission(driver.getDevice())) {
-            Log.i("UART", "Request permission");
+            Log.i(TAG, "Request permission");
             int flags = PendingIntent.FLAG_MUTABLE;
             PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(activity, 0, new Intent(INTENT_ACTION_GRANT_USB), flags);
             manager.requestPermission(driver.getDevice(), usbPermissionIntent);
@@ -76,7 +79,7 @@ public class UartChannel extends Channel implements SerialInputOutputManager.Lis
 
         if (connection == null) {
             // add UsbManager.requestPermission(driver.getDevice(), ..) handling here
-            Log.e("UartChannel", "Failed to create a connection to Uart");
+            Log.e(TAG, "Failed to create a connection to Uart");
             return;
         }
 
@@ -92,7 +95,7 @@ public class UartChannel extends Channel implements SerialInputOutputManager.Lis
             throw new RuntimeException(e);
         }
         SerialInputOutputManager usbIoManager = new SerialInputOutputManager(port, this);
-        Log.i("UART", "Buf len:" + usbIoManager.getReadBufferSize());
+        Log.i(TAG, "Buf len:" + usbIoManager.getReadBufferSize());
         try {
             port.setDTR(true); // for arduino, ...
             port.setRTS(true);
@@ -108,7 +111,7 @@ public class UartChannel extends Channel implements SerialInputOutputManager.Lis
         byte[] buf = new byte[30];
         try {
             int read = port.read(buf, 20);
-            Log.i("UART", "Read " + read + " bytes");
+            Log.i(TAG, "Read " + read + " bytes");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -126,11 +129,11 @@ public class UartChannel extends Channel implements SerialInputOutputManager.Lis
 
     @Override
     public void onNewData(byte[] data) {
-        Log.i("UART", "Received data: " + BytesUtils.bytesToString(data) + "Len:" + data.length);
+        Log.i(TAG, "Received data: " + BytesUtils.bytesToString(data) + "Len:" + data.length);
         if (data.length + received >= messageSize) {
             System.arraycopy(data, 0, messageBuf, received, messageSize - received);
             received = 0;
-            Log.i("UART", "Received message: " + BytesUtils.bytesToString(messageBuf) + "Len:" + messageBuf.length);
+            Log.i(TAG, "Received message: " + BytesUtils.bytesToString(messageBuf) + "Len:" + messageBuf.length);
             notifyAllListeners(READ_DATA, null, messageBuf);
             return;
         }

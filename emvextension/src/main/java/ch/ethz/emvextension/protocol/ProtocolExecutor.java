@@ -85,7 +85,6 @@ public class ProtocolExecutor {
         byte[] response = outputStream.toByteArray();
         Log.i(TAG, "CreateHello:\n" + getHex(response));
         Long stop = System.nanoTime();
-        Log.i("Timer", "CreateCardHello: " + ((float) (stop - start) / 1000000));
         return apduWrapper.encode(response);
     }
 
@@ -103,8 +102,6 @@ public class ProtocolExecutor {
 
 
     public void parseCardHello(byte[] helloMessage, Session session) {
-        Long start = System.nanoTime();
-
         helloMessage = apduWrapper.decode(helloMessage);
         byte[] dhBytes = TlvUtil.getValue(helloMessage, EXT_DH);
         byte[] tagBytes = TlvUtil.getValue(helloMessage, EXT_MAC);
@@ -146,9 +143,6 @@ public class ProtocolExecutor {
         if (!Arrays.equals(tag, tagBytes)) {
             throw new RuntimeException("TAG DO NOT MATCH");
         }
-        Long stop = System.nanoTime();
-        Log.i("Timer", "ParseCardHello: " + ((float) (stop - start) / 1000000));
-
     }
 
     public void parseTerminalHello(byte[] helloMessage, Session session) {
@@ -185,8 +179,6 @@ public class ProtocolExecutor {
         session.setSecret(secret);
         session.setTagKey(tagKey);
         Long stop = System.nanoTime();
-        Log.i("Timer", "ParseTerminalHello: " + ((float) (stop - start) / 1000000));
-
     }
 
     public byte[] selectAID(Session session) {
@@ -231,6 +223,7 @@ public class ProtocolExecutor {
             Log.e(TAG, "This function should not be called in state: " + stateToString(paymentSession.getState()));
             return;
         }
+        Log.i(TAG, "Parse report from board");
         int pollTxOffset = 0;
         int respRxOffset = 4;
         int pollRxOffset = 8;
@@ -245,8 +238,6 @@ public class ProtocolExecutor {
         long finalTx;
         float distance;
 
-        Log.i(TAG, bin2hex(timingsBytes));
-        Log.i(TAG, Arrays.toString(timingsBytes));
         try {
             pollRx = byteArrayToUInt32(timingsBytes, pollRxOffset);
             pollTx = byteArrayToUInt32(timingsBytes, pollTxOffset);
@@ -286,13 +277,11 @@ public class ProtocolExecutor {
             byte[] valueBytes = Crypto.sign(privateKey, session.getTranscript());
             signature.write(new TLV(EXT_SIGNATURE, valueBytes.length, valueBytes).getTlvBytes());
             Log.i(TAG, "Signing:\n" + BytesUtils.bytesToString(session.getTranscript()) + "\n");
-            Log.i(TAG, "Card key modulus: " + privateKey.getModulus());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         Log.i(TAG, "Sending signature (sign): " + BytesUtils.bytesToString(signature.toByteArray()));
-        Log.i(TAG, "Signature length:" + signature.size());
         return apduWrapper.encode(signature.toByteArray());
     }
 
@@ -307,7 +296,6 @@ public class ProtocolExecutor {
          * */
         RSAPublicKey cardKey = session.getSecondaryKey();
         Log.i(TAG, "Signing:\n" + BytesUtils.bytesToString(session.getRemoteTranscript()) + "\n");
-        Log.i(TAG, "Card key modulus: " + cardKey.getModulus());
         if (!Crypto.verify(cardKey, signature, session.getRemoteTranscript())) {
             throw new RuntimeException("Invalid signature");
         }

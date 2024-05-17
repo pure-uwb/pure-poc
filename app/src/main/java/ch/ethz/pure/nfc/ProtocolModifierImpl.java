@@ -49,7 +49,6 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
     private ReaderController readerController;
     private CardController cardController = null;
     private boolean isProtocolFinished = false;
-    private Long start;
 
     private final String TAG = ProtocolModifierImpl.class.getName();
 
@@ -61,7 +60,6 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
 
     @Override
     public byte[] parse(byte[] cmd, byte[] res) throws EmvParsingException {
-        Long start_parse = System.nanoTime();
         byte[] cmdEnum = Arrays.copyOf(cmd, cmd.length);
         if (cmd[0] == (byte) 0x80 & cmd[1] == (byte) 0xAE) {
             // NOTE: In GEN AC, P1 is variable. Enum looks for P1 = 0x00 to recognise GEN AC.
@@ -101,7 +99,7 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                 }
 
                 if (executeExtension) {
-                    Log.i(this.getClass().getName(), "Start of extension");
+                    Log.i(TAG, "Start of extension");
                     ApplicationCryptogram AC = new ApplicationCryptogram();
                     Semaphore s = new Semaphore(0);
                     // Controller MUST wait on the semaphore s before signing
@@ -145,7 +143,7 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                         }
                         if (!readerController.isSuccess()) {
                             res = new byte[]{(byte) 0x00};
-                            Log.e("ProtocolModifierImpl", "Extension protocol failed");
+                            Log.e(TAG, "Extension protocol failed");
                         }
                     } else {
                         // The card parses the transaction as well to recover the input to GEN_AC
@@ -156,22 +154,15 @@ public class ProtocolModifierImpl implements ProtocolModifier, PropertyChangeLis
                 } else {
                     ((MainActivity) activity).showSuccess(true);
                 }
-                Long stop = System.nanoTime();
-                Log.i("Timer", "Total transaction time: " + ((float) (stop - start) / 1000000));
                 isProtocolFinished = true;
                 break;
             case SELECT:
-                start = System.nanoTime();
-                Log.i("Timer", "RES:" + BytesUtils.bytesToStringNoSpace(res));
                 // Track AID
                 String aid = BytesUtils.bytesToStringNoSpace(TlvUtil.getValue(res, EmvTags.DEDICATED_FILE_NAME));
                 parser.getCard().setAid(aid);
 
                 break;
         }
-        Long end_parse = System.nanoTime();
-        Log.i("Timer", "[MOD]\t" + "Time: " + ((float) (end_parse - start_parse) / 1000000) + command);
-
         return res;
     }
 

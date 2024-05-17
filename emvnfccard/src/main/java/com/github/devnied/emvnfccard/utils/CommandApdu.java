@@ -107,6 +107,16 @@ public class CommandApdu {
             throw new EmvParsingException("Command should contain at least 4 byes");
         }
         byte[] commandId = Arrays.copyOfRange(command, 0, 4);
+
+        if (command[0] == (byte) 0x80 & command[1] == (byte) 0xAE) {
+            // NOTE: In GEN AC, P1 is variable. Enum looks for P1 = 0x00 to recognise GEN AC.
+            commandId[2] = (byte) 0x00;
+        }
+        if (command[0] == (byte) 0x00 & command[1] == (byte) 0xB2) {
+            commandId[2] = (byte) 0x00;
+            commandId[3] = (byte) 0x00;
+        }
+
         CommandEnum commandEnum = CommandEnum.getEnum(commandId);
         if (commandEnum == null) {
             commandId[2] = 0x00;

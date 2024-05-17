@@ -88,9 +88,8 @@ public class Session implements PropertyChangeObservable {
 
     public void step() {
         String oldState = stateMachine.getStateString();
-        Log.i("STATE_MACHINE", "From:" + oldState);
         stateMachine.step();
-        Log.i("STATE_MACHINE", "To:" + stateMachine.getStateString());
+        Log.i(TAG, "State change: " + oldState + " to " +  stateMachine.getStateString());
         notifyAllListeners("state", oldState, stateMachine.getStateString());
     }
 
@@ -100,11 +99,10 @@ public class Session implements PropertyChangeObservable {
         this.respRx = respRx;
         this.respTx = respTx;
         this.finalTx = finalTx;
-        Log.i("Session", pollRx.toString());
-        Log.i("Session", pollTx.toString());
-        Log.i("Session", respRx.toString());
-        Log.i("Session", respTx.toString());
-        Log.i("Session", finalTx.toString());
+        Log.i(TAG, "PollRx:\t" + pollRx.toString());
+        Log.i(TAG, "PollTx:\t" + pollTx.toString());
+        Log.i(TAG, "RespRx:\t" +respRx.toString());
+        Log.i(TAG, "RespTx:\t" +respTx.toString());
     }
 
     public void setDistance(Float distance) {
