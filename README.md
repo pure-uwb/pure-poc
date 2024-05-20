@@ -1,11 +1,26 @@
 # Android PoC for PURE
 
 This README accompanies the PoC android application associated with the paper "PURE: Payments with UWB RElay-protection".
-It is supposed to be used with two android phones together with two nrf52 boards and QorvoDWM3000 flashed with the code in [pure-uwb-board](add-link).
+It is supposed to be used with two android phones together with two nrf52 boards and QorvoDWM3000 flashed with the code in [pure-uwb-board](git@github.com:daniCoppola/pure-uwb.git).
+
+## Content
+
+This repo contains:
+- The stand-alone version of the protocol in the `stand-alone` folder
+- The integrated version at the root of the repo.
+
 
 ## How to build
-The application can be build with gradle. If you want to build from source / make changes we suggest using Android Studio. Additionally, we provide an apk you can use to directly install the app.
+Both the stand alone and the integrated versions can be built with gradle. We suggest using Android Studio to open and build the project.
 
+# Stand-alone
+## How to use
+- Flash the boards with the firware in [pure-uwb-board](git@github.com:daniCoppola/pure-uwb.git)
+- Connect each board to an android device
+- Install the reader and card application on two android devices making sure it matches the firmware of the board. At this point you will be asked to grant the application the permission to access the boars.In case you install the application before connecting the boards, please restart the application in order to enable USB access. 
+- Place the devices in contact and see the transaction execution. 
+
+# Integrated version
 ## How to use
 Install the application on two android devices. In the settings (top right) set one phone to be a card and one to be a reader. For the card, you will have to enable the application to be a payment application.
 In the settings: 
