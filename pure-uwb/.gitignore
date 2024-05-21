@@ -1,0 +1,6 @@
+*/*.deb
+*/.vscode/
+.vscode
+*/.gdb*
+*/.vagrant
+

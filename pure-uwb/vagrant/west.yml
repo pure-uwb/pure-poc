@@ -1,0 +1,191 @@
+# The west manifest file (west.yml) for the nRF Connect SDK (NCS).
+#
+# The per-workspace west configuration file, ncs/.west/config,
+# specifies the location of this manifest file like this:
+#
+#     [manifest]
+#     path = nrf
+#
+# See the west documentation for more information:
+#
+# https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/guides/west/index.html
+
+manifest:
+  version: "0.12"
+
+  # "remotes" is a list of locations where git repositories are cloned
+  # and fetched from.
+  remotes:
+    # nRF Connect SDK GitHub organization.
+    # NCS repositories are hosted here.
+    - name: ncs
+      url-base: https://github.com/nrfconnect
+    # Third-party repository sources:
+    - name: zephyrproject
+      url-base: https://github.com/zephyrproject-rtos
+    - name: throwtheswitch
+      url-base: https://github.com/ThrowTheSwitch
+    - name: armmbed
+      url-base: https://github.com/ARMmbed
+    - name: alexa
+      url-base: https://github.com/alexa
+    - name: nordicsemi
+      url-base: https://github.com/NordicSemiconductor
+    - name: memfault
+      url-base: https://github.com/memfault
+    - name: dwm3000
+      url-base: https://github.com/foldedtoad/dwm3000.git
+  # If not otherwise specified, the projects below should be obtained
+  # from the ncs remote.
+  defaults:
+    remote: ncs
+
+  group-filter: [-homekit, -nrf-802154, -find-my]
+
+  # "projects" is a list of git repositories which make up the NCS
+  # source code.
+  projects:
+
+    # The Zephyr RTOS fork in the NCS, along with the subset of its
+    # modules which NCS imports directly.
+    #
+    # https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/introduction/index.html
+    # https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/guides/modules.html
+    - name: zephyr
+      repo-path: sdk-zephyr
+      revision: 25f6e1655c33e662688968e08cd52bbce12b9835
+      import:
+        # In addition to the zephyr repository itself, NCS also
+        # imports the contents of zephyr/west.yml at the above
+        # revision. Only the projects explicitly named in the
+        # following allowlist are imported.
+        #
+        # Note that the zephyr west extensions (like 'build', 'flash',
+        # 'debug', etc.) are automatically provided by this import, so
+        # there's no need to add a redundant west-commands: key for
+        # the zephyr project.
+        #
+        # Please keep this list sorted alphabetically.
+        name-allowlist:
+          - TraceRecorderSource
+          - canopennode
+          - civetweb
+          - cmsis
+          - edtt
+          - fatfs
+          - fff
+          - hal_nordic
+          - hal_st
+          - libmetal
+          - littlefs
+          - loramac-node
+          - lvgl
+          - lz4
+          - mipi-sys-t
+          - nanopb
+          - net-tools
+          - nrf_hw_models
+          - open-amp
+          - psa-arch-tests
+          - segger
+          - tinycbor
+          - tinycrypt
+          - tf-m-tests
+          - zscilib
+
+    # NCS repositories.
+    #
+    # Some of these are also Zephyr modules which have NCS-specific
+    # changes.
+    - name: mcuboot
+      repo-path: sdk-mcuboot
+      revision: v1.9.99-ncs4
+      path: bootloader/mcuboot
+    - name: mbedtls-nrf
+      path: mbedtls
+      repo-path: sdk-mbedtls
+      revision: v3.1.0-ncs3
+    - name: nrfxlib
+      repo-path: sdk-nrfxlib
+      path: nrfxlib
+      revision: v2.3.0
+    - name: trusted-firmware-m
+      repo-path: sdk-trusted-firmware-m
+      path: modules/tee/tf-m/trusted-firmware-m
+      revision: v1.6.0-ncs3
+        #    - name: tfm-mcuboot # This is used by the trusted-firmware-m module.
+        #repo-path: sdk-mcuboot
+        # path: modules/tee/tfm-mcuboot
+        #revision: v1.9.99-ncs4
+    - name: matter
+      repo-path: sdk-connectedhomeip
+      path: modules/lib/matter
+      revision: v1.9.2
+      submodules:
+        - name: nlio
+          path: third_party/nlio/repo
+        - name: nlassert
+          path: third_party/nlassert/repo
+        - name: pigweed
+          path: third_party/pigweed/repo
+    - name: nrf-802154
+      repo-path: sdk-nrf-802154
+      path: nrf-802154
+      revision: v1.9.2
+      groups:
+      - nrf-802154
+    - name: cjson
+      repo-path: sdk-cjson
+      path: modules/lib/cjson
+      revision: c6af068b7f05207b28d68880740e4b9ec1e4b50a
+    - name: homekit
+      repo-path: sdk-homekit
+      revision: v1.9.2
+      groups:
+      - homekit
+    - name: find-my
+      repo-path: sdk-find-my
+      revision: v1.9.2
+      groups:
+      - find-my
+    # Other third-party repositories.
+    - name: cmock
+      path: test/cmock
+      revision: 9d092898ef26ece140d9225e037274b64d4f851e
+      remote: throwtheswitch
+    - name: unity
+      path: test/cmock/vendor/unity
+      revision: 74cde089e65c3435ce9aa87d5c69f4f16b7f6ade
+      remote: throwtheswitch
+    - name: Alexa-Gadgets-Embedded-Sample-Code
+      path: modules/alexa-embedded
+      revision: face92d8c62184832793f518bb1f19379538c5c1
+      remote: alexa
+    - name: cddl-gen
+      remote: nordicsemi
+      revision: 1c2656daa87ebf4cd3c45ee8eafa336260d589bc
+      path: modules/lib/cddl-gen
+    - name: memfault-firmware-sdk
+      path: modules/lib/memfault-firmware-sdk
+      revision: 0.28.2
+      remote: memfault
+    - name: openthread
+      repo-path: sdk-openthread
+      path: modules/lib/openthread
+      revision: 02e61a2edd80417e9b8f9a5f4c1b2dad4ac486b4
+    - name: mbedtls
+      revision: 7fed49c9b9f983ad6416986661ef637459723bcb
+      path: modules/crypto/mbedtls
+      remote: zephyrproject
+    - name: dwm3000
+      remote: dwm3000
+      path: dwm3000
+      repo-path: /
+      revision: e7695154c7cee772fde498311a894ec0cb775f17
+  # West-related configuration for the nrf repository.
+  self:
+    # This repository should be cloned to ncs/nrf.
+    path: nrf
+    # This line configures west extensions which are currently only
+    # for internal use by NCS maintainers.
+    west-commands: scripts/west-commands.yml

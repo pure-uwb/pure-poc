@@ -15,3 +15,9 @@
 .cxx
 local.properties
 app/src/main/java/ch/ethz/nfcrelay/nfc/BuildSettings.java
+
+pure-uwb/*/*.deb
+pure-uwb/*/.vscode/
+.vscode
+pure-uwb/*/.gdb*
+pure-uwb/*/.vagrant
