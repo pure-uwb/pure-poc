@@ -39,10 +39,11 @@
  * @attention
  *
  * Copyright 2019 - 2020 (c) Decawave Ltd, Dublin, Ireland.
- *
+ * Copyright 2024 (c) ETH Zurich
  * All rights reserved.
  *
  * @author Decawave
+ * @modified by ETH Zurich
  */
 
 #include <stdlib.h>

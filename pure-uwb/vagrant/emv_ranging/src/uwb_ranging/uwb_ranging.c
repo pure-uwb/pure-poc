@@ -1,3 +1,5 @@
+// This code contains part of the code developed by Decawave 
+
 #include <zephyr.h>
 #include <assert.h>
 #include <string.h>
