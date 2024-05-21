@@ -104,6 +104,7 @@ Following is a high level description of the code control flow:
 The timings folder contains the dataset collected for 500 transactions with the standalone implementation (not yet published) and the integrated version (in this repository). The file process.py analyses the csv files and reports the timings in Table 2.
 
 ## Credits
-The folder emvnfccard contains code from [android-emv-key-test](https://github.com/johnzweng/android-emv-key-test/tree/master) and  [EMV-NFC-Paycard-Enrollment
-Public](https://github.com/devnied/EMV-NFC-Paycard-Enrollment).
+The folder emvnfccard contains code from [android-emv-key-test](https://github.com/johnzweng/android-emv-key-test) and  [EMV-NFC-Paycard-Enrollment
+Public](https://github.com/devnied/EMV-NFC-Paycard-Enrollment) respectively released under the GNU GLP v3 license and apache 2 license.
+We made minor modifications to the sources of these libraries. 
 
