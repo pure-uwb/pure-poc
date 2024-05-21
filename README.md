@@ -6,9 +6,11 @@ This README accompanies the PoC associated with the paper "PURE: Payments with U
 - `android-app` contains the sources of the android applications used to implement PURE
 - `pure-uwb` contains the sources necessary to flash the UWB boards 
 
-We refer to the README in the respective folder for the intstruction on how to use this.
-Additionally, the folder `android-app/timings` contains the collected transaction timings. 
+## Steps to run a relay protected transaction
+Flash two UWB Qorvo boards following the instructions in the README in `pure-uwb`.
+Install either the standalone or the integrated app following the instruction in the README in `android-app`.
 
+Note: as explained in the `android-app` README it is possible to run a trnasaction with a mocked board in case you do not have the required hardware listed in `pure-uwb`. 
 
 ## Timings
 To run print the average and standard deviation of the collected timings run:

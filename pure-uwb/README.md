@@ -140,5 +140,5 @@ The `bootstrap.sh` file is executed when the VM is provisioned. Follow the steps
 ```
 The folder `dwm3000` contains the drivers for controlling the DWM3000 board. The `zephyr` folder contains zephyr OS. In `nrf/samples` the folder `emv_ranging` folder contains the code executed by the board to perform ranging. Finally, `install_hex.sh` is a utility script to install the hex once a sample is compiled. 
 
-## License
-
+## Copyright 
+The source code in emv_ranging is a modified version of the two-way ranging example released under the GNU GLP v3 License in [dwm3000](https://github.com/foldedtoad/dwm3000).
