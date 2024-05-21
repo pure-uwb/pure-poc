@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">EMV-UWB</string>
+    <string name="pos_emulator">POS emulator</string>
+    <string name="card_emulator">Card emulator</string>
+
+    <string name="press_pay">Press the card button to start the payment service…</string>
+    <string name="service_not_active">The payment service is not enabled</string>
+    <string name="hold_phone">Hold phone near the payment terminal</string>
+    <string name="enable">Enable</string>
+    <string name="processing">Processing, hold steady…</string>
+    <string name="completed">Completed.</string>
+
+    <string name="waiting_for_card">Waiting for card…</string>
+    <string name="card_connected">Card connected</string>
+    <string name="ip">IP: %s</string>
+    <string name="saved_in">Saved in \'%s\'</string>
+    <string name="copied_to_clip">Copied to clipboard</string>
+    <string name="transaction_successful">Transaction successful</string>
+
+    <!-- APDU service -->
+    <string name="servicedesc">Host APDU service</string>
+    <string name="aiddescription">Payment AIDs</string>
+
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+    <string name="emulator">Emulator</string>
+
+    <string name="pos">POS</string>
+    <string name="card">Card</string>
+
+    <string name="ip_title">POS emulator\'s IP address</string>
+
+    <string name="save_title">Save log</string>
+    <string name="clipboard">Clipboard</string>
+    <string name="storage">Storage</string>
+    <string name="clipboard_n_storage">Both</string>
+</resources>

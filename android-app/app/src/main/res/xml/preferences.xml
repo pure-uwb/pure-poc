@@ -1,0 +1,43 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ListPreference
+        android:entries="@array/emulatorEntries"
+        android:entryValues="@array/emulatorValues"
+        app:defaultValue="pos"
+        app:key="emulator"
+        app:title="@string/emulator"
+        app:useSimpleSummaryProvider="true" />
+
+    <!-- Card -->
+    <EditTextPreference
+        app:key="ip"
+        app:title="@string/ip_title"
+        app:useSimpleSummaryProvider="true" />
+
+    <!--<EditTextPreference
+        app:key="port"
+        app:title="@string/port_title" />-->
+
+    <!-- POS -->
+    <ListPreference
+        android:entries="@array/saveEntries"
+        android:entryValues="@array/saveValues"
+        app:defaultValue="clipboard"
+        app:key="save"
+        app:title="@string/save_title"
+        app:useSimpleSummaryProvider="true" />
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="transparent_relay"
+        android:title="Transparent" />
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="mock_uart"
+        android:title="Mock uart" />
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="prerec_backend"
+        android:title="Prerecorded backend" />
+
+</PreferenceScreen>
