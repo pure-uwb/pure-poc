@@ -38,7 +38,7 @@ To use live backends the following is necessary:
 - 1 real reader
 
 The following diagram shows how each phone should be set:
-
+<pre>
 ┌───────────┐                                                                                               ┌──────────────┐              
 │           │                                                                                               │              │              
 │ Real Card │                                                                                               │  Real Reader │              
@@ -62,6 +62,7 @@ The following diagram shows how each phone should be set:
                                                                                                             │ the real reader.           │
                                                                                                             │                            │
                                                                                                             └────────────────────────────┘
+</pre>
 UWB-Card and UWB-reader should be attached to UWB boards flashed with the respective code.
 In order to ensure communication (Reader <-> UWB-card), and (UWB-Reader <-> Card) all phones should be connected to the same network and on the Card and UWB-card the IP of the respective reader should be set via the settings.
 Connectivty between phones can be checked in the following way:
