@@ -14,11 +14,11 @@ List of devices attached
 Note that the transport_id may change. The Pixel is set to run as the terminal while the Samsung phone is set to run as a card.
 
 ## Installation
-
+Change diractory to adoird-app executing `cd android-app`
 To install the application on the phones execute 
-`adb_scripts/install.sh`.
+`./adb_scripts/install.sh`.
 
-As a preparation step for the transactio execution run `adb_scripts/unlock.sh`, this ensures that the devices are unlocked and ready for the transaction.
+As a preparation step for the transactio execution run `adb_scripts/unlock.sh`, this ensures that the devices are unlocked ./and ready for the transaction.
 
 ## Run a transaction
 
@@ -26,7 +26,7 @@ Execute `adb_scripts/transact.sh` to execute a transaction. The phones are physi
 
 
 ## Get outputs 
-The command `scrcpy -s <DEVICE_ID>` e.g. `scrcpy -s 10.42.0.24:5555` mirror the screen of the phone on your machine. Note that depending on the connection this can be rather laggy.
+The command `scrcpy -s <DEVICE_ID>` e.g. `scrcpy -s 10.42.0.14:5555` mirror the screen of the phone on your machine. Note that depending on the connection this can be rather laggy.
 
 Execute `adb -t <transport_id_terminal> logcat |  grep -e "Timer" -e "PosEmulator"` e.g. `adb -t 2 logcat |  grep -e "Timer" -e "PosEmulator"` to see the log output of the terminal.
 
